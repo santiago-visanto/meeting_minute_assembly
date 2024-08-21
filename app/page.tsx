@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useRef } from 'react'
-import { transcribeAudio } from './actions'
+import { useState, useRef, useEffect } from 'react'
+import { startTranscription, getTranscriptionStatus } from './actions'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -17,7 +17,7 @@ function SubmitButton() {
       {pending ? (
         <>
           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          Transcribiendo...
+          Iniciando transcripción...
         </>
       ) : (
         <>
@@ -33,19 +33,44 @@ export default function TranscribePage() {
   const [transcription, setTranscription] = useState<any[] | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [speakersExpected, setSpeakersExpected] = useState<string>("1")
+  const [transcriptionId, setTranscriptionId] = useState<string | null>(null)
+  const [isPolling, setIsPolling] = useState(false)
   const formRef = useRef<HTMLFormElement>(null)
 
   async function handleSubmit(formData: FormData) {
     setError(null)
     setTranscription(null)
+    setTranscriptionId(null)
 
     try {
-      const result = await transcribeAudio(formData)
-      setTranscription(result)
+      const id = await startTranscription(formData)
+      setTranscriptionId(id)
+      setIsPolling(true)
     } catch (err) {
       setError((err as Error).message)
     }
   }
+
+  useEffect(() => {
+    if (isPolling && transcriptionId) {
+      const pollInterval = setInterval(async () => {
+        try {
+          const result = await getTranscriptionStatus(transcriptionId)
+          if (result) {
+            setTranscription(result)
+            setIsPolling(false)
+            clearInterval(pollInterval)
+          }
+        } catch (err) {
+          setError((err as Error).message)
+          setIsPolling(false)
+          clearInterval(pollInterval)
+        }
+      }, 5000) // Poll every 5 seconds
+
+      return () => clearInterval(pollInterval)
+    }
+  }, [isPolling, transcriptionId])
 
   return (
     <div className="container mx-auto p-4">
@@ -83,6 +108,12 @@ export default function TranscribePage() {
             <SubmitButton />
           </form>
           {error && <p className="text-red-500 text-center">{error}</p>}
+          {isPolling && (
+            <div className="text-center">
+              <Loader2 className="inline-block h-8 w-8 animate-spin" />
+              <p>Transcribiendo audio... Esto puede tomar unos minutos.</p>
+            </div>
+          )}
           {transcription && (
             <div className="mt-4 space-y-2">
               <h2 className="text-xl font-semibold">Transcripción:</h2>
