@@ -1,33 +1,13 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { startTranscription, getTranscriptionStatus } from './actions'
+import { uploadFile, startTranscription, getTranscriptionStatus } from './actions'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Loader2, Upload } from "lucide-react"
-import { useFormStatus } from 'react-dom'
-
-function SubmitButton() {
-  const { pending } = useFormStatus()
-  
-  return (
-    <Button type="submit" disabled={pending} className="w-full">
-      {pending ? (
-        <>
-          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          Iniciando transcripción...
-        </>
-      ) : (
-        <>
-          <Upload className="mr-2 h-4 w-4" />
-          Transcribir
-        </>
-      )}
-    </Button>
-  )
-}
+import { Progress } from "@/components/ui/progress"
 
 export default function TranscribePage() {
   const [transcription, setTranscription] = useState<any[] | null>(null)
@@ -35,19 +15,38 @@ export default function TranscribePage() {
   const [speakersExpected, setSpeakersExpected] = useState<string>("1")
   const [transcriptionId, setTranscriptionId] = useState<string | null>(null)
   const [isPolling, setIsPolling] = useState(false)
-  const formRef = useRef<HTMLFormElement>(null)
+  const [isUploading, setIsUploading] = useState(false)
+  const [uploadProgress, setUploadProgress] = useState(0)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
-  async function handleSubmit(formData: FormData) {
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault()
     setError(null)
     setTranscription(null)
     setTranscriptionId(null)
+    setIsUploading(true)
+    setUploadProgress(0)
 
     try {
-      const id = await startTranscription(formData)
+      const file = fileInputRef.current?.files?.[0]
+      if (!file) {
+        throw new Error('No se ha seleccionado ningún archivo.')
+      }
+
+      const formData = new FormData()
+      formData.append('file', file)
+
+      // Upload file to Vercel Blob Storage
+      const fileUrl = await uploadFile(formData)
+
+      // Start transcription
+      const id = await startTranscription(fileUrl, speakersExpected)
       setTranscriptionId(id)
       setIsPolling(true)
     } catch (err) {
       setError((err as Error).message)
+    } finally {
+      setIsUploading(false)
     }
   }
 
@@ -79,7 +78,7 @@ export default function TranscribePage() {
           <CardTitle className="text-2xl font-bold text-center">Transcribir Audio</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <form ref={formRef} action={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-4">
             <div className="flex items-center space-x-4">
               <Input
                 type="file"
@@ -87,9 +86,9 @@ export default function TranscribePage() {
                 accept="audio/*"
                 className="flex-grow"
                 required
+                ref={fileInputRef}
               />
               <Select 
-                name="speakersExpected" 
                 value={speakersExpected} 
                 onValueChange={setSpeakersExpected}
               >
@@ -105,9 +104,32 @@ export default function TranscribePage() {
                 </SelectContent>
               </Select>
             </div>
-            <SubmitButton />
+            <Button type="submit" disabled={isUploading || isPolling} className="w-full">
+              {isUploading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Subiendo archivo...
+                </>
+              ) : isPolling ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Transcribiendo...
+                </>
+              ) : (
+                <>
+                  <Upload className="mr-2 h-4 w-4" />
+                  Transcribir
+                </>
+              )}
+            </Button>
           </form>
           {error && <p className="text-red-500 text-center">{error}</p>}
+          {isUploading && (
+            <div className="space-y-2">
+              <Progress value={uploadProgress} className="w-full" />
+              <p className="text-center">Subiendo archivo... {uploadProgress.toFixed(2)}%</p>
+            </div>
+          )}
           {isPolling && (
             <div className="text-center">
               <Loader2 className="inline-block h-8 w-8 animate-spin" />
