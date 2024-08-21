@@ -23,7 +23,7 @@ export async function POST(request: Request) {
   };
 
   try {
-    const transcript = await client.transcripts.create(data);
+    const transcript = await client.transcripts.transcribe(data);
     return NextResponse.json({ transcriptionId: transcript.id });
   } catch (error) {
     console.error('Error al iniciar la transcripción:', error);
