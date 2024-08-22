@@ -31,7 +31,7 @@ export default function TranscribePage() {
     try {
       const file = fileInputRef.current?.files?.[0]
       if (!file) {
-        throw new Error('No se ha seleccionado ningún archivo.')
+        throw new Error("No se ha seleccionado ningún archivo.")
       }
 
       // Get the upload URL
@@ -125,8 +125,8 @@ export default function TranscribePage() {
                 required
                 ref={fileInputRef}
               />
-              <Select 
-                value={speakersExpected} 
+              <Select
+                value={speakersExpected}
                 onValueChange={setSpeakersExpected}
               >
                 <SelectTrigger className="w-[180px]">
