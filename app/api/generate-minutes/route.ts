@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { ChatFireworks } from "@langchain/community/chat_models/fireworks";
 import { ChatPromptTemplate, MessagesPlaceholder } from "@langchain/core/prompts";
-import { HumanMessage, AIMessage } from "@langchain/core/messages";
+import { HumanMessage } from "@langchain/core/messages";
 import { JsonOutputParser } from "@langchain/core/output_parsers";
 
 const formatInstructions = `Respond only with a valid JSON object, 
@@ -46,23 +46,20 @@ const llm = new ChatFireworks({
 const chain_writer = prompt.pipe(llm).pipe(parser);
 
 export async function POST(request: Request) {
-  const { transcript, wordCount, reflection } = await request.json();
+  const { transcript, wordCount } = await request.json();
 
   const today = new Date().toLocaleDateString('en-GB');
+
   const content = `Today's date is ${today}\n. This is a transcript of a meeting.\n-----\n ${transcript}\n -----\n
                     Your task is to write up for me the minutes of the meeting described above, 
                     including all the points of the meeting. The meeting minutes should be approximately ${wordCount} words 
                     and should be divided into paragraphs using newline characters.`;
-  const messages = [new HumanMessage({ content })];
 
-  if (reflection) {
-    messages.push(new AIMessage({ content: "Previous minutes generated" }));
-    messages.push(new HumanMessage({ content: `Critique of the previous minutes: ${reflection}. Please generate new minutes addressing these points.` }));
-  }
+  const request_message = new HumanMessage({ content });
 
   try {
     const result = await chain_writer.invoke({
-      messages: messages,
+      messages: [request_message],
     });
 
     return NextResponse.json(result);
