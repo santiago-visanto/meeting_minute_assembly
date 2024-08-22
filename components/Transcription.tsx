@@ -12,7 +12,12 @@ interface Utterance {
   text: string;
 }
 
-export default function Transcription({ audioUrl }: { audioUrl: string }) {
+interface TranscriptionProps {
+  audioUrl: string;
+  onTranscriptionComplete: (transcript: string) => void;
+}
+
+export default function Transcription({ audioUrl, onTranscriptionComplete }: TranscriptionProps) {
   const [isTranscribing, setIsTranscribing] = useState(false);
   const [utterances, setUtterances] = useState<Utterance[]>([]);
   const [progress, setProgress] = useState(0);
@@ -36,6 +41,10 @@ export default function Transcription({ audioUrl }: { audioUrl: string }) {
       if (data.error) throw new Error(data.error);
 
       setUtterances(data.utterances);
+      
+      // Combine all utterances into a single string and pass it to the parent component
+      const fullTranscript = data.utterances.map((u: { speaker: any; text: any; }) => `${u.speaker}: ${u.text}`).join('\n');
+      onTranscriptionComplete(fullTranscript);
     } catch (error) {
       console.error('Transcription error:', error);
     } finally {
