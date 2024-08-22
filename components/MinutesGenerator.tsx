@@ -1,12 +1,12 @@
 'use client';
 
 import { useState } from 'react';
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { MinutesDisplay } from "./MinutesDisplay"
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { MinutesDisplay } from "./MinutesDisplay";
 
 interface MeetingMinutes {
   title: string;
@@ -88,55 +88,43 @@ export default function MinutesGenerator({ transcript }: { transcript: string })
   };
 
   return (
-    <Card>
+    <Card className="mt-6">
       <CardHeader>
-        <CardTitle>Generador de Acta de Reunión</CardTitle>
+      <CardTitle>Generador de Actas</CardTitle>
+        <CardDescription>Genera actas de reunión a partir de la transcripción de audio y agrega reflexiones personalizadas.</CardDescription>
       </CardHeader>
-      <CardContent>
-        <div className="mb-4">
-          <Label htmlFor="wordCount">Número de palabras del acta</Label>
-          <Input
-            id="wordCount"
-            type="number"
-            min="50"
-            max="500"
-            value={wordCount}
-            onChange={(e) => setWordCount(Math.max(50, Math.min(500, parseInt(e.target.value) || 50)))}
-            className="mt-1"
+      <CardContent className="space-y-6">
+        <div className="flex items-center space-x-4">
+          <Label htmlFor="wordCount">Cantidad de palabras:</Label>
+          <Input 
+            id="wordCount" 
+            type="number" 
+            value={wordCount} 
+            onChange={(e) => setWordCount(Number(e.target.value))} 
+            className="max-w-xs"
           />
         </div>
-        <Button onClick={generateMinutes} disabled={isGenerating}>
-          {isGenerating ? 'Generando...' : 'Generar Acta'}
+        <Button onClick={generateMinutes} disabled={isGenerating} className="w-full">
+          {isGenerating ? 'Generando actas...' : 'Generar Actas'}
         </Button>
-        
         {minutes && <MinutesDisplay minutes={minutes} />}
-        
         {reflection && (
-          <Card className="mt-4">
-            <CardHeader>
-              <CardTitle>Crítica del Acta</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="mb-2">{reflection}</p>
-              <Textarea
-                value={modifiedReflection}
-                onChange={(e) => setModifiedReflection(e.target.value)}
-                placeholder="Modifica la crítica aquí..."
-                className="mt-2"
-              />
-              <Button onClick={handleModifyReflection} disabled={isReflecting} className="mt-2">
-                {isReflecting ? 'Generando...' : 'Generar Nueva Acta con Cambios'}
-              </Button>
-              {(modifiedReflection.trim().toLowerCase() === 'ninguna' || 
-                modifiedReflection.trim().toLowerCase() === 'none' || 
-                modifiedReflection.trim() === '') && (
-                <Button onClick={handleDownloadPDF} className="mt-2 ml-2">
-                  Descargar Acta Aprobada (PDF)
-                </Button>
-              )}
-            </CardContent>
-          </Card>
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold">Reflexión generada:</h3>
+            <Textarea 
+              value={modifiedReflection} 
+              onChange={(e) => setModifiedReflection(e.target.value)} 
+              className="w-full"
+              rows={4}
+            />
+            <Button onClick={handleModifyReflection} disabled={isReflecting} className="w-full">
+              {isReflecting ? 'Generando nueva reflexión...' : 'Modificar Reflexión'}
+            </Button>
+          </div>
         )}
+        <Button onClick={handleDownloadPDF} className="w-full mt-4">
+          Descargar PDF
+        </Button>
       </CardContent>
     </Card>
   );

@@ -2,20 +2,24 @@
 
 import { useState, useRef } from 'react';
 import { upload } from '@vercel/blob/client';
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { useToast } from "@/components/ui/use-toast";
 
 export default function AudioUpload({ onUploadComplete }: { onUploadComplete: (url: string) => void }) {
   const inputFileRef = useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const { toast } = useToast();
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setIsUploading(true);
 
     if (!inputFileRef.current?.files) {
-      throw new Error('No file selected');
+      toast({ title: "Error", description: "No file selected", variant: "destructive" });
+      setIsUploading(false);
+      return;
     }
 
     const file = inputFileRef.current.files[0];
@@ -28,6 +32,7 @@ export default function AudioUpload({ onUploadComplete }: { onUploadComplete: (u
 
       onUploadComplete(newBlob.url);
     } catch (error) {
+      toast({ title: "Error", description: "Upload failed", variant: "destructive" });
       console.error('Upload failed:', error);
     } finally {
       setIsUploading(false);
@@ -37,10 +42,11 @@ export default function AudioUpload({ onUploadComplete }: { onUploadComplete: (u
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Upload Audio File</CardTitle>
+        <CardTitle>Sube un archivo de audio</CardTitle>
+        <CardDescription>Selecciona el audio.</CardDescription>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} className="space-y-4">
           <Input 
             name="file" 
             ref={inputFileRef} 
@@ -48,7 +54,7 @@ export default function AudioUpload({ onUploadComplete }: { onUploadComplete: (u
             accept="audio/mp3,audio/mp4,audio/ogg,audio/wav"
             required 
           />
-          <Button type="submit" disabled={isUploading} className="mt-2">
+          <Button type="submit" disabled={isUploading} className="w-full">
             {isUploading ? 'Uploading...' : 'Upload'}
           </Button>
         </form>

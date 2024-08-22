@@ -1,4 +1,4 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface MeetingMinutes {
   title: string;
@@ -14,45 +14,57 @@ interface MeetingMinutes {
 
 export function MinutesDisplay({ minutes }: { minutes: MeetingMinutes }) {
   return (
-    <Card className="mt-4">
+    <Card className="mt-6">
       <CardHeader>
-        <CardTitle>{minutes.title}</CardTitle>
+        <CardTitle className="text-xl font-bold">{minutes.title}</CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="space-y-4">
         <p><strong>Fecha:</strong> {minutes.date}</p>
-        <h3 className="font-semibold mt-2">Asistentes:</h3>
-        <ul>
-          {Array.isArray(minutes.attendees) && minutes.attendees.map((attendee, index) => (
-            <li key={index}>{attendee.name} - {attendee.position} ({attendee.role})</li>
-          ))}
-        </ul>
-        <h3 className="font-semibold mt-2">Resumen:</h3>
-        <p>{minutes.summary}</p>
-        <h3 className="font-semibold mt-2">Puntos clave:</h3>
-        <ul>
-                  {Array.isArray(minutes.takeaways) && minutes.takeaways.map((takeaway, index) => (
-            <li key={index}>{takeaway}</li>
-          ))}
-        </ul>
-        <h3 className="font-semibold mt-2">Conclusiones:</h3>
-        <ul>
-                  {Array.isArray(minutes.conclusions) && minutes.conclusions.map((conclusion, index) => (
-            <li key={index}>{conclusion}</li>
-          ))}
-        </ul>
-        <h3 className="font-semibold mt-2">Próxima reunión:</h3>
-        <ul>
-          {Array.isArray(minutes.next_meeting) && minutes.next_meeting.map((item, index) => (
-            <li key={index}>{item}</li>
-          ))}
-        </ul>
-        <h3 className="font-semibold mt-2">Tareas:</h3>
-        <ul>
-          {Array.isArray(minutes.tasks) && minutes.tasks.map((task, index) => (
-            <li key={index}>{task.responsible} - {task.description} (Fecha: {task.date})</li>
-          ))}
-        </ul>
-        <p className="mt-2"><strong>Mensaje adicional:</strong> {minutes.message}</p>
+        <section>
+          <h3 className="font-semibold">Asistentes:</h3>
+          <ul className="pl-4 list-disc">
+            {minutes.attendees.map((attendee, index) => (
+              <li key={index}>{attendee.name} - {attendee.position} ({attendee.role})</li>
+            ))}
+          </ul>
+        </section>
+        <section>
+          <h3 className="font-semibold">Resumen:</h3>
+          <p>{minutes.summary}</p>
+        </section>
+        <section>
+          <h3 className="font-semibold">Puntos clave:</h3>
+          <ul className="pl-4 list-disc">
+            {minutes.takeaways.map((takeaway, index) => (
+              <li key={index}>{takeaway}</li>
+            ))}
+          </ul>
+        </section>
+        <section>
+          <h3 className="font-semibold">Conclusiones:</h3>
+          <ul className="pl-4 list-disc">
+            {minutes.conclusions.map((conclusion, index) => (
+              <li key={index}>{conclusion}</li>
+            ))}
+          </ul>
+        </section>
+        <section>
+          <h3 className="font-semibold">Próxima reunión:</h3>
+          <ul className="pl-4 list-disc">
+            {minutes.next_meeting.map((item, index) => (
+              <li key={index}>{item}</li>
+            ))}
+          </ul>
+        </section>
+        <section>
+          <h3 className="font-semibold">Tareas:</h3>
+          <ul className="pl-4 list-disc">
+            {minutes.tasks.map((task, index) => (
+              <li key={index}>{task.responsible} - {task.description} (Fecha: {task.date})</li>
+            ))}
+          </ul>
+        </section>
+        <p><strong>Mensaje adicional:</strong> {minutes.message}</p>
       </CardContent>
     </Card>
   );
