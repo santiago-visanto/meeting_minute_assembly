@@ -7,7 +7,11 @@ import { Input } from '@/components/ui/input'
 import { upload } from '@vercel/blob/client'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
-export default function AudioUploader() {
+interface AudioUploaderProps {
+  onUploadComplete: (url: string) => void;
+}
+
+export default function AudioUploader({ onUploadComplete }: AudioUploaderProps) {
   const [blob, setBlob] = useState<{ url: string } | null>(null)
   const [isUploading, setIsUploading] = useState(false)
   const inputFileRef = useRef<HTMLInputElement>(null)
@@ -29,15 +33,7 @@ export default function AudioUploader() {
       })
 
       setBlob(newBlob)
-
-      // Enviar la URL del blob al servidor
-      await fetch('/api/set-audio-url', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ url: newBlob.url }),
-      })
+      onUploadComplete(newBlob.url) // Pasar la URL al componente padre
     } catch (error) {
       console.error('Upload failed:', error)
     } finally {

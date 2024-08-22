@@ -2,7 +2,6 @@
 import { NextResponse } from 'next/server'
 import { AssemblyAI } from 'assemblyai'
 
-// Asegúrate de que la API key esté configurada correctamente
 const API_KEY = process.env.ASSEMBLYAI_API_KEY!
 if (!API_KEY) {
   console.error("AssemblyAI API key is not set")
@@ -12,25 +11,19 @@ const client = new AssemblyAI({
   apiKey: API_KEY,
 })
 
-export async function POST() {
+export async function POST(request: Request) {
   try {
-    // Obtener la URL del audio almacenada
-    const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/set-audio-url`)
-    console.log("response:", response)
-    if (!response.ok) {
-      throw new Error(`Failed to fetch audio URL: ${response.statusText}`)
-    }
-    const { url: FILE_URL } = await response.json()
+    const { audioUrl } = await request.json()
 
-    if (!FILE_URL) {
-      throw new Error('No audio URL found')
+    if (!audioUrl) {
+      throw new Error('No audio URL provided')
     }
 
-    console.log("Transcribing audio from URL:", FILE_URL) // Log para debugging
+    console.log("Transcribing audio from URL:", audioUrl) // Log para debugging
 
     const data = {
-      audio_url: FILE_URL,
-      speech_model: 'best' as any, 
+      audio_url: audioUrl,
+      speech_model: 'best' as any,
       speaker_labels: true,
       language_code: 'es',
     }
