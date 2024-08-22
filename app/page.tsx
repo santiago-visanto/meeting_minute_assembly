@@ -139,7 +139,6 @@ export default function TranscribePage() {
                     </SelectItem>
                   ))}
                 </SelectContent>
-
               </Select>
             </div>
             <Button type="submit" disabled={isUploading || isPolling} className="w-full">
