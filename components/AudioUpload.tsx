@@ -45,10 +45,10 @@ export default function AudioUpload({ onUploadComplete }: { onUploadComplete: (u
             name="file" 
             ref={inputFileRef} 
             type="file" 
-            accept="audio/*"
+            accept="audio/mp3,audio/mp4,audio/ogg,audio/wav"
             required 
           />
-          <Button type="submit" disabled={isUploading}>
+          <Button type="submit" disabled={isUploading} className="mt-2">
             {isUploading ? 'Uploading...' : 'Upload'}
           </Button>
         </form>
