@@ -5,7 +5,7 @@ import { HumanMessage } from "@langchain/core/messages";
 import { JsonOutputParser } from "@langchain/core/output_parsers";
 
 const formatInstructions = `Respond only with a valid JSON object, 
-                            containing 8 fields: 
+                            containing nine fields: 
                             {
                               "title": Title of the meeting,
                               "date": Date of the meeting,
@@ -16,6 +16,7 @@ const formatInstructions = `Respond only with a valid JSON object,
                               "next_meeting": List of the commitments made at the meeting. Be sure to go through the entire content of the meeting before giving your answer,
                               "tasks": List of dictionaries for the commitments acquired in the meeting. 
                                       The dictionaries must have the following key values "responsible", "date" and "description". In the key-value  "description", it is advisable to mention specifically what the person in charge is expected to do instead of indicating general actions. Be sure to include all the items in the next_mmeting list,
+                              "message": "message to the critique",
                             }`;
 
 const parser = new JsonOutputParser();
