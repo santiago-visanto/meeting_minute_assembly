@@ -16,6 +16,7 @@ export async function POST() {
   try {
     // Obtener la URL del audio almacenada
     const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/set-audio-url`)
+    console.log("response:", response)
     if (!response.ok) {
       throw new Error(`Failed to fetch audio URL: ${response.statusText}`)
     }
