@@ -2,16 +2,21 @@
 import { NextResponse } from 'next/server'
 import { AssemblyAI } from 'assemblyai'
 
-const apiKey = process.env.ASSEMBLYAI_API_KEY!
+const apiKey = process.env.ASSEMBLYAI_API_KEY!;
 
 const client = new AssemblyAI({
   apiKey: apiKey,
-});
+})
 
 export async function POST() {
   try {
-    // Aquí deberías obtener la URL del audio subido anteriormente
-    const FILE_URL = 'URL_DEL_AUDIO_SUBIDO'
+    // Obtener la URL del audio almacenada
+    const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/set-audio-url`)
+    const { url: FILE_URL } = await response.json()
+
+    if (!FILE_URL) {
+      throw new Error('No audio URL found')
+    }
 
     const data = {
       audio_url: FILE_URL,

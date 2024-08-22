@@ -29,6 +29,15 @@ export default function AudioUploader() {
       })
 
       setBlob(newBlob)
+
+      // Enviar la URL del blob al servidor
+      await fetch('/api/set-audio-url', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ url: newBlob.url }),
+      })
     } catch (error) {
       console.error('Upload failed:', error)
     } finally {
