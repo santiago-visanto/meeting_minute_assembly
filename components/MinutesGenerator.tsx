@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
+import { MinutesDisplay } from "./MinutesDisplay"
 
 interface MeetingMinutes {
   title: string;
@@ -55,6 +56,7 @@ export default function MinutesGenerator({ transcript }: { transcript: string })
       });
       const data = await response.json();
       setReflection(data.reflection);
+      setModifiedReflection(data.reflection);
     } catch (error) {
       console.error('Error generating reflection:', error);
     } finally {
@@ -65,18 +67,24 @@ export default function MinutesGenerator({ transcript }: { transcript: string })
   const handleModifyReflection = async () => {
     setIsReflecting(true);
     try {
-      const response = await fetch('/api/generate-reflection', {
+      const response = await fetch('/api/generate-minutes', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ minutes, reflection: modifiedReflection }),
+        body: JSON.stringify({ transcript, wordCount, reflection: modifiedReflection }),
       });
       const data = await response.json();
-      setReflection(data.reflection);
+      setMinutes(data);
+      generateReflection(data);
     } catch (error) {
-      console.error('Error generating new reflection:', error);
+      console.error('Error generating new minutes:', error);
     } finally {
       setIsReflecting(false);
     }
+  };
+
+  const handleDownloadPDF = () => {
+    // Implementar la lógica para descargar el PDF
+    console.log("Descargando PDF...");
   };
 
   return (
@@ -101,27 +109,33 @@ export default function MinutesGenerator({ transcript }: { transcript: string })
           {isGenerating ? 'Generando...' : 'Generar Acta'}
         </Button>
         
-        {minutes && (
-          <div className="mt-4">
-            <h3 className="text-lg font-semibold mb-2">Acta de la Reunión:</h3>
-            <pre className="whitespace-pre-wrap">{JSON.stringify(minutes, null, 2)}</pre>
-          </div>
-        )}
+        {minutes && <MinutesDisplay minutes={minutes} />}
         
         {reflection && (
-          <div className="mt-4">
-            <h3 className="text-lg font-semibold mb-2">Crítica del Acta:</h3>
-            <p>{reflection}</p>
-            <Textarea
-              value={modifiedReflection}
-              onChange={(e) => setModifiedReflection(e.target.value)}
-              placeholder="Modifica la crítica aquí..."
-              className="mt-2"
-            />
-            <Button onClick={handleModifyReflection} disabled={isReflecting} className="mt-2">
-              {isReflecting ? 'Generando...' : 'Generar Nueva Crítica'}
-            </Button>
-          </div>
+          <Card className="mt-4">
+            <CardHeader>
+              <CardTitle>Crítica del Acta</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="mb-2">{reflection}</p>
+              <Textarea
+                value={modifiedReflection}
+                onChange={(e) => setModifiedReflection(e.target.value)}
+                placeholder="Modifica la crítica aquí..."
+                className="mt-2"
+              />
+              <Button onClick={handleModifyReflection} disabled={isReflecting} className="mt-2">
+                {isReflecting ? 'Generando...' : 'Generar Nueva Acta con Cambios'}
+              </Button>
+              {(modifiedReflection.trim().toLowerCase() === 'ninguna' || 
+                modifiedReflection.trim().toLowerCase() === 'none' || 
+                modifiedReflection.trim() === '') && (
+                <Button onClick={handleDownloadPDF} className="mt-2 ml-2">
+                  Descargar Acta Aprobada (PDF)
+                </Button>
+              )}
+            </CardContent>
+          </Card>
         )}
       </CardContent>
     </Card>
