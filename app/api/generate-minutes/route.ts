@@ -53,17 +53,11 @@ export async function POST(request: Request) {
                     Your task is to write up for me the minutes of the meeting described above, 
                     including all the points of the meeting. The meeting minutes should be approximately ${wordCount} words 
                     and should be divided into paragraphs using newline characters.`;
-
   const messages = [new HumanMessage({ content })];
 
   if (reflection) {
     messages.push(new AIMessage({ content: "Previous minutes generated" }));
-    messages.push(new HumanMessage(
-      {
-        content: `Critique of the previous minutes: ${reflection}. 
-                  Please generate new minutes addressing these points.`
-      }
-    ));
+    messages.push(new HumanMessage({ content: `Critique of the previous minutes: ${reflection}. Please generate new minutes addressing these points.` }));
   }
 
   try {
