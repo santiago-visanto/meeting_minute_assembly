@@ -1,9 +1,8 @@
-// app/api/upload/route.ts
-import { handleUpload, type HandleUploadBody } from '@vercel/blob/client'
-import { NextResponse } from 'next/server'
+import { handleUpload, type HandleUploadBody } from '@vercel/blob/client';
+import { NextResponse } from 'next/server';
 
 export async function POST(request: Request): Promise<NextResponse> {
-  const body = (await request.json()) as HandleUploadBody
+  const body = (await request.json()) as HandleUploadBody;
 
   try {
     const jsonResponse = await handleUpload({
@@ -13,18 +12,18 @@ export async function POST(request: Request): Promise<NextResponse> {
         return {
           allowedContentTypes: ['audio/mpeg', 'audio/wav', 'audio/ogg'],
           tokenPayload: JSON.stringify({}),
-        }
+        };
       },
       onUploadCompleted: async ({ blob, tokenPayload }) => {
-        console.log('blob upload completed', blob, tokenPayload)
+        console.log('blob upload completed', blob, tokenPayload);
       },
-    })
+    });
 
-    return NextResponse.json(jsonResponse)
+    return NextResponse.json(jsonResponse);
   } catch (error) {
     return NextResponse.json(
       { error: (error as Error).message },
       { status: 400 }
-    )
+    );
   }
 }
