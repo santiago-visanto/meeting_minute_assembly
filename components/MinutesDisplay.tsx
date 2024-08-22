@@ -22,7 +22,7 @@ export function MinutesDisplay({ minutes }: { minutes: MeetingMinutes }) {
         <p><strong>Fecha:</strong> {minutes.date}</p>
         <h3 className="font-semibold mt-2">Asistentes:</h3>
         <ul>
-          {minutes.attendees.map((attendee, index) => (
+          {Array.isArray(minutes.attendees) && minutes.attendees.map((attendee, index) => (
             <li key={index}>{attendee.name} - {attendee.position} ({attendee.role})</li>
           ))}
         </ul>
@@ -30,25 +30,25 @@ export function MinutesDisplay({ minutes }: { minutes: MeetingMinutes }) {
         <p>{minutes.summary}</p>
         <h3 className="font-semibold mt-2">Puntos clave:</h3>
         <ul>
-          {minutes.takeaways.map((takeaway, index) => (
+                  {Array.isArray(minutes.takeaways) && minutes.takeaways.map((takeaway, index) => (
             <li key={index}>{takeaway}</li>
           ))}
         </ul>
         <h3 className="font-semibold mt-2">Conclusiones:</h3>
         <ul>
-          {minutes.conclusions.map((conclusion, index) => (
+                  {Array.isArray(minutes.conclusions) && minutes.conclusions.map((conclusion, index) => (
             <li key={index}>{conclusion}</li>
           ))}
         </ul>
         <h3 className="font-semibold mt-2">Próxima reunión:</h3>
         <ul>
-          {minutes.next_meeting.map((item, index) => (
+          {Array.isArray(minutes.next_meeting) && minutes.next_meeting.map((item, index) => (
             <li key={index}>{item}</li>
           ))}
         </ul>
         <h3 className="font-semibold mt-2">Tareas:</h3>
         <ul>
-          {minutes.tasks.map((task, index) => (
+          {Array.isArray(minutes.tasks) && minutes.tasks.map((task, index) => (
             <li key={index}>{task.responsible} - {task.description} (Fecha: {task.date})</li>
           ))}
         </ul>
