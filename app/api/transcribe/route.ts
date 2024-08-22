@@ -10,14 +10,16 @@ const client = new AssemblyAI({
   apiKey: API_KEY,
 })
 
+
 export async function POST(request: Request) {
-  const { audioUrl } = await request.json();
+  const { audioUrl, speakersExpected } = await request.json();
 
   const params = {
     audio: audioUrl,
     speech_model: "best" as any,
     speaker_labels: true,
     language_code: 'es',
+    speakers_expected: speakersExpected,
   };
 
   try {

@@ -4,6 +4,8 @@ import { useState } from 'react';
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 
 interface Utterance {
   speaker: string;
@@ -14,6 +16,7 @@ export default function Transcription({ audioUrl }: { audioUrl: string }) {
   const [isTranscribing, setIsTranscribing] = useState(false);
   const [utterances, setUtterances] = useState<Utterance[]>([]);
   const [progress, setProgress] = useState(0);
+  const [speakersExpected, setSpeakersExpected] = useState(2);
 
   const handleTranscribe = async () => {
     setIsTranscribing(true);
@@ -24,7 +27,7 @@ export default function Transcription({ audioUrl }: { audioUrl: string }) {
       const response = await fetch('/api/transcribe', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ audioUrl }),
+        body: JSON.stringify({ audioUrl, speakersExpected }),
       });
 
       if (!response.ok) throw new Error('Transcription failed');
@@ -47,6 +50,18 @@ export default function Transcription({ audioUrl }: { audioUrl: string }) {
         <CardTitle>Transcription</CardTitle>
       </CardHeader>
       <CardContent>
+        <div className="mb-4">
+          <Label htmlFor="speakers">Expected Number of Speakers</Label>
+          <Input
+            id="speakers"
+            type="number"
+            min="1"
+            max="10"
+            value={speakersExpected}
+            onChange={(e) => setSpeakersExpected(Math.max(1, Math.min(10, parseInt(e.target.value) || 1)))}
+            className="mt-1"
+          />
+        </div>
         <Button onClick={handleTranscribe} disabled={isTranscribing}>
           {isTranscribing ? 'Transcribing...' : 'Start Transcription'}
         </Button>
