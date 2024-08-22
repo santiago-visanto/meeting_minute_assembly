@@ -135,10 +135,11 @@ export default function TranscribePage() {
                 <SelectContent>
                   {[1, 2, 3, 4, 5].map((num) => (
                     <SelectItem key={num} value={num.toString()}>
-                      {num} {num === 1 ? '&#39;speaker&#39;' : '&#39;speakers&#39;'}
+                      {num} {num === 1 ? "speaker" : "speakers"}
                     </SelectItem>
                   ))}
                 </SelectContent>
+
               </Select>
             </div>
             <Button type="submit" disabled={isUploading || isPolling} className="w-full">
