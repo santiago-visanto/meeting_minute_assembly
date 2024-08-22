@@ -1,37 +1,37 @@
 'use client';
-import { useState, useRef, useEffect } from 'react'
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Loader2, Upload } from "lucide-react"
-import { Progress } from "@/components/ui/progress"
-import { useToast } from "@/components/ui/use-toast"
-import { upload } from '@vercel/blob/client'
+import { useState, useRef, useEffect } from 'react';
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Loader2, Upload } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
+import { useToast } from "@/components/ui/use-toast";
+import { upload } from '@vercel/blob/client';
 
 export default function TranscribePage() {
-  const [transcription, setTranscription] = useState<any[] | null>(null)
-  const [error, setError] = useState<string | null>(null)
-  const [speakersExpected, setSpeakersExpected] = useState<string>("1")
-  const [transcriptionId, setTranscriptionId] = useState<string | null>(null)
-  const [isPolling, setIsPolling] = useState(false)
-  const [isUploading, setIsUploading] = useState(false)
-  const [uploadProgress, setUploadProgress] = useState(0)
-  const fileInputRef = useRef<HTMLInputElement>(null)
-  const { toast } = useToast()
+  const [transcription, setTranscription] = useState<any[] | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [speakersExpected, setSpeakersExpected] = useState<string>("1");
+  const [transcriptionId, setTranscriptionId] = useState<string | null>(null);
+  const [isPolling, setIsPolling] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const { toast } = useToast();
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault()
-    setError(null)
-    setTranscription(null)
-    setTranscriptionId(null)
-    setIsUploading(true)
-    setUploadProgress(0)
+    event.preventDefault();
+    setError(null);
+    setTranscription(null);
+    setTranscriptionId(null);
+    setIsUploading(true);
+    setUploadProgress(0);
 
     try {
-      const file = fileInputRef.current?.files?.[0]
+      const file = fileInputRef.current?.files?.[0];
       if (!file) {
-        throw new Error("No se ha seleccionado ningún archivo.")
+        throw new Error("No se ha seleccionado ningún archivo.");
       }
 
       // Get the upload URL
@@ -39,37 +39,37 @@ export default function TranscribePage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ filename: file.name }),
-      })
-      const { uploadUrl, pathname } = await uploadUrlResponse.json()
+      });
+      const { uploadUrl, pathname } = await uploadUrlResponse.json();
 
       // Upload the file
       const blob = await upload(pathname, file, {
         access: 'public',
         handleUploadUrl: '/api/upload',
-      })
+      });
 
-      setUploadProgress(100)
+      setUploadProgress(100);
 
       // Start transcription
       const startTranscriptionResponse = await fetch('/api/startTranscription', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ fileUrl: blob.url, speakersExpected }),
-      })
-      const { transcriptionId } = await startTranscriptionResponse.json()
+      });
+      const { transcriptionId } = await startTranscriptionResponse.json();
 
-      setTranscriptionId(transcriptionId)
-      setIsPolling(true)
+      setTranscriptionId(transcriptionId);
+      setIsPolling(true);
     } catch (err) {
-      const errorMessage = (err as Error).message
-      setError(errorMessage)
+      const errorMessage = (err as Error).message;
+      setError(errorMessage);
       toast({
         title: "Error",
         description: errorMessage,
         variant: "destructive",
-      })
+      });
     } finally {
-      setIsUploading(false)
+      setIsUploading(false);
     }
   }
 
@@ -77,36 +77,36 @@ export default function TranscribePage() {
     if (isPolling && transcriptionId) {
       const pollInterval = setInterval(async () => {
         try {
-          const response = await fetch(`/api/getTranscriptionStatus?transcriptionId=${transcriptionId}`)
-          const data = await response.json()
+          const response = await fetch(`/api/getTranscriptionStatus?transcriptionId=${transcriptionId}`);
+          const data = await response.json();
 
           if (data.status === 'completed') {
-            setTranscription(data.utterances)
-            setIsPolling(false)
-            clearInterval(pollInterval)
+            setTranscription(data.utterances);
+            setIsPolling(false);
+            clearInterval(pollInterval);
             toast({
               title: "Transcripción completada",
               description: "La transcripción se ha completado con éxito.",
-            })
+            });
           } else if (data.status === 'error') {
-            throw new Error(data.error)
+            throw new Error(data.error);
           }
         } catch (err) {
-          const errorMessage = (err as Error).message
-          setError(errorMessage)
-          setIsPolling(false)
-          clearInterval(pollInterval)
+          const errorMessage = (err as Error).message;
+          setError(errorMessage);
+          setIsPolling(false);
+          clearInterval(pollInterval);
           toast({
             title: "Error",
             description: errorMessage,
             variant: "destructive",
-          })
+          });
         }
-      }, 5000) // Poll every 5 seconds
+      }, 5000); // Poll every 5 seconds
 
-      return () => clearInterval(pollInterval)
+      return () => clearInterval(pollInterval);
     }
-  }, [isPolling, transcriptionId, toast])
+  }, [isPolling, transcriptionId, toast]);
 
   return (
     <div className="container mx-auto p-4">
@@ -135,7 +135,7 @@ export default function TranscribePage() {
                 <SelectContent>
                   {[1, 2, 3, 4, 5].map((num) => (
                     <SelectItem key={num} value={num.toString()}>
-                      {num} {num === 1 ? 'speaker' : 'speakers'}
+                      {num} {num === 1 ? "speaker" : "speakers"}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -186,5 +186,5 @@ export default function TranscribePage() {
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }
