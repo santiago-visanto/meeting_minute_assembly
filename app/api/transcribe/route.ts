@@ -10,18 +10,31 @@ const client = new AssemblyAI({
   apiKey: API_KEY,
 })
 
-
 export async function POST(request: Request) {
   const { audioUrl } = await request.json();
 
-  const data = {
-    audio_url: audioUrl,
-    speech_model: 'best' as any,
+  const params = {
+    audio: audioUrl,
+    speech_model: "best" as any,
     speaker_labels: true,
     language_code: 'es',
   };
 
-  const transcript = await client.transcripts.transcribe(data);
+  try {
+    const transcript = await client.transcripts.transcribe(params);
 
-  return NextResponse.json({ transcript: transcript.text });
+    if (transcript.status === 'error') {
+      throw new Error(transcript.error);
+    }
+
+    const utterances = transcript.utterances?.map(utterance => ({
+      speaker: utterance.speaker,
+      text: utterance.text,
+    })) || [];
+
+    return NextResponse.json({ utterances });
+  } catch (error) {
+    console.error('Transcription error:', error);
+    return NextResponse.json({ error: 'Transcription failed' }, { status: 500 });
+  }
 }

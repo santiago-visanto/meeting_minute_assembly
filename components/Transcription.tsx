@@ -5,14 +5,20 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
 
+interface Utterance {
+  speaker: string;
+  text: string;
+}
+
 export default function Transcription({ audioUrl }: { audioUrl: string }) {
   const [isTranscribing, setIsTranscribing] = useState(false);
-  const [transcript, setTranscript] = useState<string | null>(null);
+  const [utterances, setUtterances] = useState<Utterance[]>([]);
   const [progress, setProgress] = useState(0);
 
   const handleTranscribe = async () => {
     setIsTranscribing(true);
     setProgress(0);
+    setUtterances([]);
 
     try {
       const response = await fetch('/api/transcribe', {
@@ -23,26 +29,15 @@ export default function Transcription({ audioUrl }: { audioUrl: string }) {
 
       if (!response.ok) throw new Error('Transcription failed');
 
-      const reader = response.body?.getReader();
-      const decoder = new TextDecoder();
+      const data = await response.json();
+      if (data.error) throw new Error(data.error);
 
-      while (true) {
-        const { done, value } = await reader!.read();
-        if (done) break;
-
-        const chunk = decoder.decode(value);
-        const data = JSON.parse(chunk);
-
-        if (data.progress) {
-          setProgress(data.progress);
-        } else if (data.transcript) {
-          setTranscript(data.transcript);
-        }
-      }
+      setUtterances(data.utterances);
     } catch (error) {
       console.error('Transcription error:', error);
     } finally {
       setIsTranscribing(false);
+      setProgress(100);
     }
   };
 
@@ -56,10 +51,15 @@ export default function Transcription({ audioUrl }: { audioUrl: string }) {
           {isTranscribing ? 'Transcribing...' : 'Start Transcription'}
         </Button>
         {isTranscribing && <Progress value={progress} className="mt-2" />}
-        {transcript && (
+        {utterances.length > 0 && (
           <div className="mt-4">
-            <h3 className="text-lg font-semibold">Transcript:</h3>
-            <p>{transcript}</p>
+            <h3 className="text-lg font-semibold mb-2">Transcript:</h3>
+            {utterances.map((utterance, index) => (
+              <div key={index} className="mb-2">
+                <span className="font-semibold">{utterance.speaker}: </span>
+                <span>{utterance.text}</span>
+              </div>
+            ))}
           </div>
         )}
       </CardContent>
