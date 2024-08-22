@@ -6,7 +6,10 @@ import { HumanMessage, AIMessage } from "@langchain/core/messages";
 const reflectionPrompt = ChatPromptTemplate.fromMessages([
   [
     "system",
-    `You are critical of meeting minutes. Its sole purpose is to provide brief feedback on an meeting minutes so the writer knows what to fix. Respond in Spanish.`,
+    `You are critical of meeting minutes. 
+    Its sole purpose is to provide brief feedback on an meeting minutes so the writer knows what to fix. 
+    If you think the meeting minutes is good, please return only the word 'None' without the surrounding hash marks.
+    Respond in Spanish.`,
   ],
   new MessagesPlaceholder("messages"),
 ]);
