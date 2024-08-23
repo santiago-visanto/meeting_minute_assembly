@@ -31,10 +31,23 @@ interface MeetingMinutes {
   message: string;
 }
 
+interface ReflectionMinutes {
+  title: string;
+  date: string;
+  attendees: Attendee[];
+  summary: string;
+  takeaways: string[];
+  conclusions: string[];
+  next_meeting: string[];
+  tasks: Task[];
+  message: string;
+}
+
+
 export default function MinutesGenerator({ transcript }: { transcript: string }) {
   const [wordCount, setWordCount] = useState(100);
   const [minutes, setMinutes] = useState<MeetingMinutes | null>(null);
-  const [reflection, setReflection] = useState<MeetingMinutes | null>(null);
+  const [reflection, setReflection] = useState<ReflectionMinutes | null>(null);
   const [modifiedReflection, setModifiedReflection] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [isReflecting, setIsReflecting] = useState(false);
@@ -66,7 +79,7 @@ export default function MinutesGenerator({ transcript }: { transcript: string })
         body: JSON.stringify({ minutes: minutesData }),
       });
       const data = await response.json();
-      setReflection(data);
+      setReflection(data.reflection);
     } catch (error) {
       console.error('Error generating reflection:', error);
     } finally {
@@ -83,52 +96,13 @@ export default function MinutesGenerator({ transcript }: { transcript: string })
         body: JSON.stringify({ minutes, reflection: modifiedReflection }),
       });
       const data = await response.json();
-      setReflection(data);
+      setReflection(data.reflection);
     } catch (error) {
       console.error('Error generating new reflection:', error);
     } finally {
       setIsReflecting(false);
     }
   };
-
-  const renderSection = (title: string, content: string | string[] | Task[], type: 'text' | 'list' | 'tasks') => (
-    <div>
-      <h4 className="text-lg font-semibold mb-2">{title}:</h4>
-      {type === 'text' && <p className="whitespace-pre-line">{content as string}</p>}
-      {type === 'list' && (
-        <ul className="list-disc pl-5">
-          {(content as string[]).map((item, index) => (
-            <li key={index}>{item}</li>
-          ))}
-        </ul>
-      )}
-      {type === 'tasks' && (
-        <ul className="list-disc pl-5">
-          {(content as Task[]).map((task, index) => (
-            <li key={index}>
-              <strong>{task.responsible}</strong> - {task.description} (Fecha: {task.date})
-            </li>
-          ))}
-        </ul>
-      )}
-    </div>
-  );
-
-  const renderMeetingData = (data: MeetingMinutes, title: string) => (
-    <div className="mt-6 space-y-4">
-      <h3 className="text-2xl font-bold">{title}</h3>
-      <p className="text-sm text-gray-500">Fecha: {data.date}</p>
-      
-      {renderSection('Asistentes', data.attendees.map(a => `${a.name} - ${a.position} (${a.role})`), 'list')}
-      {renderSection('Resumen', data.summary, 'text')}
-      {renderSection('Puntos Clave', data.takeaways, 'list')}
-      {renderSection('Conclusiones', data.conclusions, 'list')}
-      {renderSection('Próxima Reunión', data.next_meeting, 'list')}
-      {renderSection('Tareas', data.tasks, 'tasks')}
-      
-      <p className="italic text-gray-600">{data.message}</p>
-    </div>
-  );
 
   return (
     <Card>
@@ -152,23 +126,141 @@ export default function MinutesGenerator({ transcript }: { transcript: string })
           {isGenerating ? 'Generando...' : 'Generar Acta'}
         </Button>
         
-        {minutes && renderMeetingData(minutes, minutes.title)}
+        {minutes && (
+          <div className="mt-6 space-y-4">
+            <h3 className="text-2xl font-bold">{minutes.title}</h3>
+            <p className="text-sm text-gray-500">Fecha: {minutes.date}</p>
+            
+            <div>
+              <h4 className="text-lg font-semibold mb-2">Asistentes:</h4>
+              <ul className="list-disc pl-5">
+                {minutes.attendees.map((attendee, index) => (
+                  <li key={index}>
+                    {attendee.name} - {attendee.position} ({attendee.role})
+                  </li>
+                ))}
+              </ul>
+            </div>
+            
+            <div>
+              <h4 className="text-lg font-semibold mb-2">Resumen:</h4>
+              <p className="whitespace-pre-line">{minutes.summary}</p>
+            </div>
+            
+            <div>
+              <h4 className="text-lg font-semibold mb-2">Puntos Clave:</h4>
+              <ul className="list-disc pl-5">
+                {minutes.takeaways.map((takeaway, index) => (
+                  <li key={index}>{takeaway}</li>
+                ))}
+              </ul>
+            </div>
+            
+            <div>
+              <h4 className="text-lg font-semibold mb-2">Conclusiones:</h4>
+              <ul className="list-disc pl-5">
+                {minutes.conclusions.map((conclusion, index) => (
+                  <li key={index}>{conclusion}</li>
+                ))}
+              </ul>
+            </div>
+            
+            <div>
+              <h4 className="text-lg font-semibold mb-2">Próxima Reunión:</h4>
+              <ul className="list-disc pl-5">
+                {minutes.next_meeting.map((item, index) => (
+                  <li key={index}>{item}</li>
+                ))}
+              </ul>
+            </div>
+            
+            <div>
+              <h4 className="text-lg font-semibold mb-2">Tareas:</h4>
+              <ul className="list-disc pl-5">
+                {minutes.tasks.map((task, index) => (
+                  <li key={index}>
+                    <strong>{task.responsible}</strong> - {task.description} (Fecha: {task.date})
+                  </li>
+                ))}
+              </ul>
+            </div>
+            
+            <p className="italic text-gray-600">{minutes.message}</p>
+          </div>
+        )}
         
         {reflection && (
-          <>
-            {renderMeetingData(reflection, "Crítica del Acta")}
-            <div className="mt-4">
-              <Textarea
-                value={modifiedReflection}
-                onChange={(e) => setModifiedReflection(e.target.value)}
-                placeholder="Modifica la crítica aquí..."
-                className="mt-2"
-              />
-              <Button onClick={handleModifyReflection} disabled={isReflecting} className="mt-2">
-                {isReflecting ? 'Generando...' : 'Generar Nueva Crítica'}
-              </Button>
+          <div className="mt-6">
+            <h3 className="text-xl font-semibold mb-2">Crítica del Acta:</h3>
+            <h3 className="text-2xl font-bold">{reflection.title}</h3>
+            <p className="text-sm text-gray-500">Fecha: {reflection.date}</p>
+            
+            <div>
+              <h4 className="text-lg font-semibold mb-2">Asistentes:</h4>
+              <ul className="list-disc pl-5">
+                {reflection.attendees.map((attendee, index) => (
+                  <li key={index}>
+                    {attendee.name} - {attendee.position} ({attendee.role})
+                  </li>
+                ))}
+              </ul>
             </div>
-          </>
+            
+            <div>
+              <h4 className="text-lg font-semibold mb-2">Resumen:</h4>
+              <p className="whitespace-pre-line">{reflection.summary}</p>
+            </div>
+            
+            <div>
+              <h4 className="text-lg font-semibold mb-2">Puntos Clave:</h4>
+              <ul className="list-disc pl-5">
+                {reflection.takeaways.map((takeaway, index) => (
+                  <li key={index}>{takeaway}</li>
+                ))}
+              </ul>
+            </div>
+            
+            <div>
+              <h4 className="text-lg font-semibold mb-2">Conclusiones:</h4>
+              <ul className="list-disc pl-5">
+                {reflection.conclusions.map((conclusion, index) => (
+                  <li key={index}>{conclusion}</li>
+                ))}
+              </ul>
+            </div>
+            
+            <div>
+              <h4 className="text-lg font-semibold mb-2">Próxima Reunión:</h4>
+              <ul className="list-disc pl-5">
+                {reflection.next_meeting.map((item, index) => (
+                  <li key={index}>{item}</li>
+                ))}
+              </ul>
+            </div>
+            
+            <div>
+              <h4 className="text-lg font-semibold mb-2">Tareas:</h4>
+              <ul className="list-disc pl-5">
+                {reflection.tasks.map((task, index) => (
+                  <li key={index}>
+                    <strong>{task.responsible}</strong> - {task.description} (Fecha: {task.date})
+                  </li>
+                ))}
+              </ul>
+            </div>
+            
+            <p className="italic text-gray-600">{reflection.message}</p>
+        
+            <Textarea
+              value={modifiedReflection}
+              onChange={(e) => setModifiedReflection(e.target.value)}
+              placeholder="Modifica la crítica aquí..."
+              className="mt-2"
+            />
+            <Button onClick={handleModifyReflection} disabled={isReflecting} className="mt-2">
+              {isReflecting ? 'Generando...' : 'Generar Nueva Crítica'}
+            </Button>
+          </div>
         )}
       </CardContent>
     </Card>
