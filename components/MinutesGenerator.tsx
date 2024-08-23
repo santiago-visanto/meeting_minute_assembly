@@ -39,7 +39,57 @@ export default function MinutesGenerator({ transcript }: { transcript: string })
   const [isGenerating, setIsGenerating] = useState(false);
   const [isReflecting, setIsReflecting] = useState(false);
 
-  // ... (mantén las funciones generateMinutes, generateReflection, y handleModifyReflection como estaban)
+  const generateMinutes = async () => {
+    setIsGenerating(true);
+    try {
+      const response = await fetch('/api/generate-minutes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ transcript, wordCount }),
+      });
+      const data = await response.json();
+      setMinutes(data);
+      generateReflection(data);
+    } catch (error) {
+      console.error('Error generating minutes:', error);
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  const generateReflection = async (minutesData: MeetingMinutes) => {
+    setIsReflecting(true);
+    try {
+      const response = await fetch('/api/generate-reflection', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ minutes: minutesData }),
+      });
+      const data = await response.json();
+      setReflection(data.reflection);
+    } catch (error) {
+      console.error('Error generating reflection:', error);
+    } finally {
+      setIsReflecting(false);
+    }
+  };
+
+  const handleModifyReflection = async () => {
+    setIsReflecting(true);
+    try {
+      const response = await fetch('/api/generate-reflection', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ minutes, reflection: modifiedReflection }),
+      });
+      const data = await response.json();
+      setReflection(data.reflection);
+    } catch (error) {
+      console.error('Error generating new reflection:', error);
+    } finally {
+      setIsReflecting(false);
+    }
+  };
 
   return (
     <Card>
