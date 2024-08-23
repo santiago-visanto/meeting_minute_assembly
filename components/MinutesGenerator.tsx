@@ -65,21 +65,41 @@ export default function MinutesGenerator({ transcript }: { transcript: string })
     generateMinutes(reflection);
   };
 
-  const renderList = (items: string[] | undefined) => {
-    if (!Array.isArray(items) || items.length === 0) {
-      return <p>No items available.</p>;
+  const handleMinutesChange = (field: keyof MeetingMinutes, value: any) => {
+    if (minutes) {
+      setMinutes({ ...minutes, [field]: value });
     }
+  };
+
+  const renderEditableList = (field: 'takeaways' | 'conclusions' | 'next_meeting') => {
+    if (!minutes) return null;
     return (
-      <ul className="list-disc pl-5">
-        {items.map((item, index) => (
-          <li key={index}>{item}</li>
+      <div>
+        {minutes[field].map((item, index) => (
+          <Input
+            key={index}
+            value={item}
+            onChange={(e) => {
+              const newList = [...minutes[field]];
+              newList[index] = e.target.value;
+              handleMinutesChange(field, newList);
+            }}
+            className="mb-2"
+          />
         ))}
-      </ul>
+        <Button
+          onClick={() => handleMinutesChange(field, [...minutes[field], ''])}
+          variant="outline"
+          size="sm"
+        >
+          Add Item
+        </Button>
+      </div>
     );
   };
 
   return (
-    <Card>
+    <Card className="mt-6">
       <CardHeader>
         <CardTitle>Generador de Acta de Reunión</CardTitle>
       </CardHeader>
@@ -104,64 +124,86 @@ export default function MinutesGenerator({ transcript }: { transcript: string })
         
         {minutes && (
           <div className="mt-6 space-y-4">
-            <h3 className="text-2xl font-bold">{minutes.title || 'Acta de Reunión'}</h3>
-            <p className="text-sm text-gray-500">Fecha: {minutes.date || 'No especificada'}</p>
-            
             <div>
-              <h4 className="text-lg font-semibold mb-2">Asistentes:</h4>
-              {Array.isArray(minutes.attendees) && minutes.attendees.length > 0 ? (
-                <ul className="list-disc pl-5">
-                  {minutes.attendees.map((attendee, index) => (
-                    <li key={index}>
-                      {attendee.name || 'Nombre no especificado'} - 
-                      {attendee.position || 'Posición no especificada'} 
-                      ({attendee.role || 'Rol no especificado'})
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p>No se especificaron asistentes.</p>
-              )}
+              <Label htmlFor="title">Título</Label>
+              <Input
+                id="title"
+                value={minutes.title}
+                onChange={(e) => handleMinutesChange('title', e.target.value)}
+              />
             </div>
-            
             <div>
-              <h4 className="text-lg font-semibold mb-2">Resumen:</h4>
-              <p className="whitespace-pre-line">{minutes.summary || 'No se proporcionó resumen.'}</p>
+              <Label htmlFor="date">Fecha</Label>
+              <Input
+                id="date"
+                value={minutes.date}
+                onChange={(e) => handleMinutesChange('date', e.target.value)}
+              />
             </div>
-            
             <div>
-              <h4 className="text-lg font-semibold mb-2">Puntos Clave:</h4>
-              {renderList(minutes.takeaways)}
+              <Label htmlFor="summary">Resumen</Label>
+              <Textarea
+                id="summary"
+                value={minutes.summary}
+                onChange={(e) => handleMinutesChange('summary', e.target.value)}
+                rows={5}
+              />
             </div>
-            
             <div>
-              <h4 className="text-lg font-semibold mb-2">Conclusiones:</h4>
-              {renderList(minutes.conclusions)}
+              <Label>Puntos Clave</Label>
+              {renderEditableList('takeaways')}
             </div>
-            
             <div>
-              <h4 className="text-lg font-semibold mb-2">Próxima Reunión:</h4>
-              {renderList(minutes.next_meeting)}
+              <Label>Conclusiones</Label>
+              {renderEditableList('conclusions')}
             </div>
-            
             <div>
-              <h4 className="text-lg font-semibold mb-2">Tareas:</h4>
-              {Array.isArray(minutes.tasks) && minutes.tasks.length > 0 ? (
-                <ul className="list-disc pl-5">
-                  {minutes.tasks.map((task, index) => (
-                    <li key={index}>
-                      <strong>{task.responsible || 'Responsable no especificado'}</strong> - 
-                      {task.description || 'Descripción no especificada'} 
-                      (Fecha: {task.date || 'No especificada'})
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p>No se especificaron tareas.</p>
-              )}
+              <Label>Próxima Reunión</Label>
+              {renderEditableList('next_meeting')}
             </div>
-            
-            <p className="italic text-gray-600">{minutes.message || 'No se proporcionó mensaje adicional.'}</p>
+            <div>
+              <Label>Tareas</Label>
+              {minutes.tasks.map((task, index) => (
+                <div key={index} className="mb-2">
+                  <Input
+                    value={task.responsible}
+                    onChange={(e) => {
+                      const newTasks = [...minutes.tasks];
+                      newTasks[index] = { ...task, responsible: e.target.value };
+                      handleMinutesChange('tasks', newTasks);
+                    }}
+                    placeholder="Responsable"
+                    className="mb-1"
+                  />
+                  <Input
+                    value={task.date}
+                    onChange={(e) => {
+                      const newTasks = [...minutes.tasks];
+                      newTasks[index] = { ...task, date: e.target.value };
+                      handleMinutesChange('tasks', newTasks);
+                    }}
+                    placeholder="Fecha"
+                    className="mb-1"
+                  />
+                  <Input
+                    value={task.description}
+                    onChange={(e) => {
+                      const newTasks = [...minutes.tasks];
+                      newTasks[index] = { ...task, description: e.target.value };
+                      handleMinutesChange('tasks', newTasks);
+                    }}
+                    placeholder="Descripción"
+                  />
+                </div>
+              ))}
+              <Button
+                onClick={() => handleMinutesChange('tasks', [...minutes.tasks, { responsible: '', date: '', description: '' }])}
+                variant="outline"
+                size="sm"
+              >
+                Add Task
+              </Button>
+            </div>
           </div>
         )}
         
