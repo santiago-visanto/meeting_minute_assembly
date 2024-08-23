@@ -50,7 +50,7 @@ export default function AudioUpload({ onUploadComplete }: { onUploadComplete: (u
           <Card>
             <CardHeader>
               <CardTitle>Upload Audio</CardTitle>
-              <CardDescription>Supported formats: MP3, WAV, FLAC, OGG</CardDescription>
+              <CardDescription>Supported formats: mp3, m4a, mp4, OGG</CardDescription>
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-4">
@@ -58,7 +58,7 @@ export default function AudioUpload({ onUploadComplete }: { onUploadComplete: (u
                   type="file" 
                   id="audio-file" 
                   ref={inputFileRef}
-                  accept="audio/mp3,audio/wav,audio/flac,audio/ogg"
+                  accept="audio/mp3,audio/wav,audio/m4a,audio/ogg"
                   required
                 />
                 <Button type="submit" className="w-full" disabled={isUploading}>
