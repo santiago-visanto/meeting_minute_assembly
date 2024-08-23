@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
+import { PlusIcon, MinusIcon } from 'lucide-react'
 
 interface Attendee {
   name: string;
@@ -37,6 +38,7 @@ export default function MinutesGenerator({ transcript }: { transcript: string })
   const [reflection, setReflection] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [attendees, setAttendees] = useState<Attendee[]>([{ name: '', position: '', role: '' }]);
 
   const generateMinutes = async (existingReflection: string = '') => {
     setIsGenerating(true);
@@ -45,7 +47,7 @@ export default function MinutesGenerator({ transcript }: { transcript: string })
       const response = await fetch('/api/generate-minutes', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ transcript, wordCount, minutes, reflection: existingReflection }),
+        body: JSON.stringify({ transcript, wordCount, minutes, reflection: existingReflection, attendees }),
       });
       const data = await response.json();
       if (!response.ok) {
@@ -78,27 +80,94 @@ export default function MinutesGenerator({ transcript }: { transcript: string })
     );
   };
 
+  const handleAttendeeChange = (index: number, field: keyof Attendee, value: string) => {
+    const newAttendees = [...attendees];
+    newAttendees[index][field] = value;
+    setAttendees(newAttendees);
+  };
+
+  const addAttendee = () => {
+    setAttendees([...attendees, { name: '', position: '', role: '' }]);
+  };
+
+  const removeAttendee = (index: number) => {
+    const newAttendees = attendees.filter((_, i) => i !== index);
+    setAttendees(newAttendees);
+  };
+
   return (
-    <Card>
+    <Card className="w-full max-w-2xl mx-auto">
       <CardHeader>
         <CardTitle>Generador de Acta de Reunión</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="mb-4">
-          <Label htmlFor="wordCount">Número de palabras del acta</Label>
-          <Input
-            id="wordCount"
-            type="number"
-            min="50"
-            max="500"
-            value={wordCount}
-            onChange={(e) => setWordCount(Math.max(50, Math.min(500, parseInt(e.target.value) || 50)))}
-            className="mt-1"
-          />
+        <div className="space-y-4">
+          <div>
+            <Label htmlFor="wordCount">Número de palabras del acta</Label>
+            <div className="flex items-center mt-1">
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                onClick={() => setWordCount(Math.max(50, wordCount - 50))}
+                aria-label="Decrease word count"
+              >
+                <MinusIcon className="h-4 w-4" />
+              </Button>
+              <Input
+                id="wordCount"
+                type="number"
+                min="50"
+                max="500"
+                value={wordCount}
+                onChange={(e) => setWordCount(Math.max(50, Math.min(500, parseInt(e.target.value) || 50)))}
+                className="mx-2 text-center"
+              />
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                onClick={() => setWordCount(Math.min(500, wordCount + 50))}
+                aria-label="Increase word count"
+              >
+                <PlusIcon className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+
+          <div>
+            <Label>Asistentes</Label>
+            {attendees.map((attendee, index) => (
+              <div key={index} className="mt-2 space-y-2">
+                <Input
+                  placeholder="Nombre"
+                  value={attendee.name}
+                  onChange={(e) => handleAttendeeChange(index, 'name', e.target.value)}
+                />
+                <Input
+                  placeholder="Posición"
+                  value={attendee.position}
+                  onChange={(e) => handleAttendeeChange(index, 'position', e.target.value)}
+                />
+                <Input
+                  placeholder="Rol"
+                  value={attendee.role}
+                  onChange={(e) => handleAttendeeChange(index, 'role', e.target.value)}
+                />
+                <Button type="button" variant="destructive" onClick={() => removeAttendee(index)}>
+                  Eliminar Asistente
+                </Button>
+              </div>
+            ))}
+            <Button type="button" onClick={addAttendee} className="mt-2">
+              Agregar Asistente
+            </Button>
+          </div>
+
+          <Button onClick={() => generateMinutes()} disabled={isGenerating} className="w-full">
+            {isGenerating ? 'Generando...' : 'Generar Acta'}
+          </Button>
         </div>
-        <Button onClick={() => generateMinutes()} disabled={isGenerating}>
-          {isGenerating ? 'Generando...' : 'Generar Acta'}
-        </Button>
         
         {error && <p className="text-red-500 mt-2" role="alert">{error}</p>}
         
@@ -174,7 +243,7 @@ export default function MinutesGenerator({ transcript }: { transcript: string })
               placeholder="Edita la crítica y sugerencias aquí..."
               className="mt-2 h-40"
             />
-            <Button onClick={handleGenerateNewMinutes} disabled={isGenerating} className="mt-2">
+            <Button onClick={handleGenerateNewMinutes} disabled={isGenerating} className="mt-2 w-full">
               {isGenerating ? 'Generando...' : 'Generar Nueva Acta'}
             </Button>
           </div>
