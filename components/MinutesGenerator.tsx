@@ -34,7 +34,6 @@ interface MeetingMinutes {
 
 export default function MinutesGenerator({ transcript }: { transcript: string }) {
   const [wordCount, setWordCount] = useState(100);
-  const [attendeesCount, setAttendeesCount] = useState(2);
   const [minutes, setMinutes] = useState<MeetingMinutes | null>(null);
   const [reflection, setReflection] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
@@ -47,7 +46,7 @@ export default function MinutesGenerator({ transcript }: { transcript: string })
       const response = await fetch('/api/generate-minutes', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ transcript, wordCount, attendeesCount, minutes, reflection: existingReflection }),
+        body: JSON.stringify({ transcript, wordCount, minutes, reflection: existingReflection }),
       });
       const data = await response.json();
       if (!response.ok) {
@@ -87,18 +86,6 @@ export default function MinutesGenerator({ transcript }: { transcript: string })
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-          <div>
-            <Label htmlFor="attendeesCount">Número de asistentes: {attendeesCount}</Label>
-            <Slider
-              id="attendeesCount"
-              min={1}
-              max={20}
-              step={1}
-              value={[attendeesCount]}
-              onValueChange={(value) => setAttendeesCount(value[0])}
-              className="mt-2"
-            />
-          </div>
           <div>
             <Label htmlFor="wordCount">Número de palabras del acta: {wordCount}</Label>
             <Slider

@@ -4,7 +4,8 @@ import { useState } from 'react';
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
-import { Input } from "@/components/ui/input"
+import { Slider } from "@/components/ui/slider"
+
 import { Label } from "@/components/ui/label"
 
 interface Utterance {
@@ -61,13 +62,13 @@ export default function Transcription({ audioUrl, onTranscriptionComplete }: Tra
       <CardContent>
         <div className="mb-4">
           <Label htmlFor="speakers">Expected Number of Speakers</Label>
-          <Input
+          <Slider
             id="speakers"
-            type="number"
-            min="1"
-            max="10"
-            value={speakersExpected}
-            onChange={(e) => setSpeakersExpected(Math.max(1, Math.min(10, parseInt(e.target.value) || 1)))}
+            min={1}
+            max={10}
+            step={1}
+            value={[speakersExpected]}
+            onValueChange={(value) => setSpeakersExpected(value[0])}
             className="mt-1"
           />
         </div>

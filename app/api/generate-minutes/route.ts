@@ -39,10 +39,14 @@ export async function POST(request: Request) {
   const { transcript, wordCount, minutes, reflection } = await request.json();
 
   const today = new Date().toLocaleDateString('en-GB');
-  let content = `Today's date is ${today}\n. This is a transcript of a meeting\n. ${transcript}\n Your task is to write up for me the minutes of the meeting described above, including all the points of the meeting. The meeting minutes should be approximately ${wordCount} words and should be divided into paragraphs using newline characters.`;
+  let content = `Today's date is ${today}\n. This is a transcript of a meeting\n. ${transcript}\n 
+  Your task is to write up for me the minutes of the meeting described above, including all the points of the meeting. 
+  The meeting minutes should be approximately ${wordCount} words and should be divided into paragraphs using newline characters.`;
 
   if (minutes && reflection) {
-    content += `\n\nHere are the existing minutes:\n${JSON.stringify(minutes)}\n\nAnd here is the reflection and suggestions:\n${reflection}\n\nPlease use this information to improve and refine the new minutes.`;
+    content += `\n\nHere are the existing minutes:\n${JSON.stringify(minutes)}\n\n
+    And here is the reflection and suggestions:\n${reflection}\n\n
+    Please use this information to improve and refine the new minutes.`;
   }
 
   const request_message = new HumanMessage({ content });
