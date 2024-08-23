@@ -35,26 +35,24 @@ export default function MinutesGenerator({ transcript }: { transcript: string })
   const [wordCount, setWordCount] = useState(100);
   const [minutes, setMinutes] = useState<MeetingMinutes | null>(null);
   const [reflection, setReflection] = useState('');
-  const [modifiedReflection, setModifiedReflection] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
-  const [isReflecting, setIsReflecting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const generateMinutes = async () => {
+  const generateMinutes = async (existingReflection: string = '') => {
     setIsGenerating(true);
     setError(null);
     try {
       const response = await fetch('/api/generate-minutes', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ transcript, wordCount }),
+        body: JSON.stringify({ transcript, wordCount, minutes, reflection: existingReflection }),
       });
       const data = await response.json();
       if (!response.ok) {
         throw new Error(data.error || 'Failed to generate minutes');
       }
-      setMinutes(data);
-      generateReflection(data);
+      setMinutes(data.minutes);
+      setReflection(data.reflection);
     } catch (error) {
       console.error('Error generating minutes:', error);
       setError('Failed to generate minutes. Please try again.');
@@ -63,48 +61,8 @@ export default function MinutesGenerator({ transcript }: { transcript: string })
     }
   };
 
-  const generateReflection = async (minutesData: MeetingMinutes) => {
-    setIsReflecting(true);
-    setError(null);
-    try {
-      const response = await fetch('/api/generate-reflection', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ minutes: minutesData }),
-      });
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to generate reflection');
-      }
-      setReflection(data.reflection);
-    } catch (error) {
-      console.error('Error generating reflection:', error);
-      setError('Failed to generate reflection. Please try again.');
-    } finally {
-      setIsReflecting(false);
-    }
-  };
-
-  const handleModifyReflection = async () => {
-    setIsReflecting(true);
-    setError(null);
-    try {
-      const response = await fetch('/api/generate-reflection', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ minutes, reflection: modifiedReflection }),
-      });
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to generate new reflection');
-      }
-      setReflection(data.reflection);
-    } catch (error) {
-      console.error('Error generating new reflection:', error);
-      setError('Failed to generate new reflection. Please try again.');
-    } finally {
-      setIsReflecting(false);
-    }
+  const handleGenerateNewMinutes = () => {
+    generateMinutes(reflection);
   };
 
   const renderList = (items: string[] | undefined) => {
@@ -138,11 +96,11 @@ export default function MinutesGenerator({ transcript }: { transcript: string })
             className="mt-1"
           />
         </div>
-        <Button onClick={generateMinutes} disabled={isGenerating}>
+        <Button onClick={() => generateMinutes()} disabled={isGenerating}>
           {isGenerating ? 'Generando...' : 'Generar Acta'}
         </Button>
         
-        {error && <p className="text-red-500 mt-2">{error}</p>}
+        {error && <p className="text-red-500 mt-2" role="alert">{error}</p>}
         
         {minutes && (
           <div className="mt-6 space-y-4">
@@ -207,18 +165,17 @@ export default function MinutesGenerator({ transcript }: { transcript: string })
           </div>
         )}
         
-        {reflection && (
+        {minutes && (
           <div className="mt-6">
-            <h3 className="text-xl font-semibold mb-2">Crítica del Acta:</h3>
-            <p className="mb-4">{reflection}</p>
+            <h3 className="text-xl font-semibold mb-2">Crítica y Sugerencias:</h3>
             <Textarea
-              value={modifiedReflection}
-              onChange={(e) => setModifiedReflection(e.target.value)}
-              placeholder="Modifica la crítica aquí..."
-              className="mt-2"
+              value={reflection}
+              onChange={(e) => setReflection(e.target.value)}
+              placeholder="Edita la crítica y sugerencias aquí..."
+              className="mt-2 h-40"
             />
-            <Button onClick={handleModifyReflection} disabled={isReflecting} className="mt-2">
-              {isReflecting ? 'Generando...' : 'Generar Nueva Crítica'}
+            <Button onClick={handleGenerateNewMinutes} disabled={isGenerating} className="mt-2">
+              {isGenerating ? 'Generando...' : 'Generar Nueva Acta'}
             </Button>
           </div>
         )}
