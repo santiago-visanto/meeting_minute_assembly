@@ -13,21 +13,26 @@ const reflectionPrompt = ChatPromptTemplate.fromMessages([
   [
     "system",
     `
-    You are an expert meeting minutes creator in Spanish. Your sole purpose is to edit well-written minutes based on given critique\n 
+    You are an expert meeting minutes creator. 
+    Your sole purpose is to edit well-written minutes based on given critique\n 
 
                        ${formatInstructions}\n
 
-                       "title": Title of the meeting,
-                       "date": Date of the meeting,
-                       "attendees": List of dictionaries of the meeting attendees. The dictionaries must have the following key values: "name", "position" and "role". The "role" key refers to the attendee's function in the meeting. If any of the values of these keys is not clear or is not mentioned, it is given the value "none".
-                       "summary": "succinctly summarize the minutes of the meeting in 3 clear and coherent paragraphs. Separete paragraphs using newline characters.",
-                       "takeaways": List of the takeaways of the meeting minute,
-                       "conclusions": List of conclusions and actions to be taken,
-                       "next_meeting": List of the commitments made at the meeting. Be sure to go through the entire content of the meeting before giving your answer,
-                       "tasks": List of dictionaries for the commitments acquired in the meeting. The dictionaries must have the following key values "responsible", "date" and "description". In the key-value  "description", it is advisable to mention specifically what the person in charge is expected to do instead of indicating general actions. Be sure to include all the items in the next_mmeting list,
-                       "message": "message to the critique",
+                    "title": Title of the meeting,
+                    "date": Date of the meeting,
+                    "attendees": List of dictionaries of the meeting attendees. The dictionaries must have the following key values: "name", "position" and "role". The "role" key refers to the attendee's function in the meeting. If any of the values of these keys is not clear or is not mentioned, it is given the value "none".
+                    "summary": "succinctly summarize the minutes of the meeting in 3 clear and coherent paragraphs. Separete paragraphs using newline characters.",
+                    "takeaways": List of the takeaways of the meeting minute,
+                    "conclusions": List of conclusions and actions to be taken,
+                    "next_meeting": List of the commitments made at the meeting. Be sure to go through the entire content of the meeting before giving your answer,
+                    "tasks": List of dictionaries for the commitments acquired in the meeting. The dictionaries must have the following key values "responsible", "date" and "description". In the key-value  "description", it is advisable to mention specifically what the person in charge is expected to do instead of indicating general actions. Be sure to include all the items in the next_mmeting list,
+                    "message": "message to the critique",
                  
-                     Respond in Spanish.\n
+                    Respond in Spanish.\n
+
+                    Make sure that your answers are structured, concise and provide a 
+                    critical and only 
+                    implementation of the critique and only with json object.
                  
     `,
   ],
@@ -41,32 +46,33 @@ const llm = new ChatFireworks({
   modelKwargs: { max_tokens: 32768 },
 });
 
-const reflect = reflectionPrompt.pipe(llm);
+const chain_reflect = reflectionPrompt.pipe(llm);
 
 export async function POST(request: Request) {
-  const { minutes, reflection } = await request.json();
+  const {transcript, minutes, reflection } = await request.json();
+
+  const content = `This is a transcript of a meeting:\n-----\n ${transcript}\n -----\n
+
+  This is a meeting minute:\n-----\n ${minutes }\n -----\n.
+
+  And this is a critique: \n-----\n ${reflection }\n -----\n
+
+
+   Your task is to improve the minutes of the meeting described above with the critique, 
+  including all the points of the meeting. It should be divided into paragraphs using newline characters.
+  `;
+
+  const request_message = new HumanMessage({ content });
+
 
   try {
-    const messages = [
-      new HumanMessage({ content: JSON.stringify(minutes) }),
-    ];
-
-    if (reflection) {
-      messages.push(new AIMessage({ content: reflection }));
-    }
-
-    const stream = await reflect.stream({
-      messages: messages,
+    const result = await chain_reflect.invoke({
+      messages: [request_message],
     });
 
-    let result = '';
-    for await (const chunk of stream) {
-      result += chunk.content;
-    }
-
-    return NextResponse.json({ reflection: result });
+    return NextResponse.json(result);
   } catch (error) {
-    console.error('Error generating reflection:', error);
-    return NextResponse.json({ error: 'Failed to generate reflection' }, { status: 500 });
+    console.error('Error generating minutes:', error);
+    return NextResponse.json({ error: 'Failed to generate minutes' }, { status: 500 });
   }
 }

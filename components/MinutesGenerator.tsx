@@ -93,7 +93,7 @@ export default function MinutesGenerator({ transcript }: { transcript: string })
       const response = await fetch('/api/generate-reflection', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ minutes, reflection: modifiedReflection }),
+        body: JSON.stringify({ minutes, transcript, reflection: modifiedReflection }),
       });
       const data = await response.json();
       setReflection(data.reflection);
