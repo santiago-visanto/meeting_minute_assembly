@@ -19,11 +19,12 @@ export async function POST(request: Request) {
       audio_url: audioUrl,
       speaker_labels: true,
       speakers_expected: speakersExpected,
+      language_code: 'es',  // Asegurarse de que el idioma esté configurado en español
     });
 
     return NextResponse.json({ transcriptionId: transcript.id });
   } catch (error) {
-    console.error('Error starting transcription:', error);
-    return NextResponse.json({ error: 'Failed to start transcription' }, { status: 500 });
+    console.error('Error al iniciar la transcripción:', error);
+    return NextResponse.json({ error: 'No se pudo iniciar la transcripción' }, { status: 500 });
   }
 }

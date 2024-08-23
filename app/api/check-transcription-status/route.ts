@@ -16,7 +16,7 @@ export async function GET(request: Request) {
   const id = searchParams.get('id');
 
   if (!id) {
-    return NextResponse.json({ error: 'Transcription ID is required' }, { status: 400 });
+    return NextResponse.json({ error: 'Se requiere el ID de transcripción' }, { status: 400 });
   }
 
   try {
@@ -38,11 +38,11 @@ export async function GET(request: Request) {
         error: transcript.error,
       });
     } else {
-      // Calculate progress based on the current status
+      // Calcular el progreso basado en el estado actual
       let progress = 0;
       switch (transcript.status) {
         case 'queued':
-          progress = 0;
+          progress = 5;
           break;
         case 'processing':
           progress = 50;
@@ -57,7 +57,7 @@ export async function GET(request: Request) {
       });
     }
   } catch (error) {
-    console.error('Error checking transcription status:', error);
-    return NextResponse.json({ error: 'Failed to check transcription status' }, { status: 500 });
+    console.error('Error al verificar el estado de la transcripción:', error);
+    return NextResponse.json({ error: 'No se pudo verificar el estado de la transcripción' }, { status: 500 });
   }
 }

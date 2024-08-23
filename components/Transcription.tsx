@@ -45,22 +45,22 @@ export default function Transcription({ audioUrl, onTranscriptionComplete }: Tra
           onTranscriptionComplete(fullTranscript);
           clearInterval(intervalId);
         } else if (data.status === 'error') {
-          setError(data.error || 'An error occurred during transcription');
+          setError(data.error || 'Ocurrió un error durante la transcripción');
           setIsTranscribing(false);
           clearInterval(intervalId);
         } else {
           setProgress(data.progress || 0);
         }
       } catch (error) {
-        console.error('Error checking transcription status:', error);
-        setError('Failed to check transcription status');
+        console.error('Error al verificar el estado de la transcripción:', error);
+        setError('No se pudo verificar el estado de la transcripción');
         setIsTranscribing(false);
         clearInterval(intervalId);
       }
     };
 
     if (isTranscribing && transcriptionId) {
-      intervalId = setInterval(checkTranscriptionStatus, 5000); // Check every 5 seconds
+      intervalId = setInterval(checkTranscriptionStatus, 5000); // Verificar cada 5 segundos
     }
 
     return () => {
@@ -82,14 +82,14 @@ export default function Transcription({ audioUrl, onTranscriptionComplete }: Tra
       });
 
       if (!response.ok) {
-        throw new Error('Transcription request failed');
+        throw new Error('La solicitud de transcripción falló');
       }
 
       const data = await response.json();
       setTranscriptionId(data.transcriptionId);
     } catch (error) {
-      console.error('Transcription error:', error);
-      setError('Failed to start transcription. Please try again.');
+      console.error('Error de transcripción:', error);
+      setError('No se pudo iniciar la transcripción. Por favor, intente de nuevo.');
       setIsTranscribing(false);
     }
   };
@@ -97,11 +97,11 @@ export default function Transcription({ audioUrl, onTranscriptionComplete }: Tra
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Transcription</CardTitle>
+        <CardTitle>Transcripción</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="mb-4">
-          <Label htmlFor="speakers">Expected Number of Speakers</Label>
+          <Label htmlFor="speakers">Número esperado de hablantes</Label>
           <Input
             id="speakers"
             type="number"
@@ -113,12 +113,12 @@ export default function Transcription({ audioUrl, onTranscriptionComplete }: Tra
           />
         </div>
         <Button onClick={handleTranscribe} disabled={isTranscribing}>
-          {isTranscribing ? 'Transcribing...' : 'Start Transcription'}
+          {isTranscribing ? 'Transcribiendo...' : 'Iniciar Transcripción'}
         </Button>
         {isTranscribing && (
           <div className="mt-4">
             <Progress value={progress} className="w-full" />
-            <p className="text-center mt-2">{progress}% complete</p>
+            <p className="text-center mt-2">{progress}% completado</p>
           </div>
         )}
         {error && (
@@ -130,7 +130,7 @@ export default function Transcription({ audioUrl, onTranscriptionComplete }: Tra
         )}
         {utterances.length > 0 && (
           <div className="mt-4">
-            <h3 className="text-lg font-semibold mb-2">Transcript:</h3>
+            <h3 className="text-lg font-semibold mb-2">Transcripción:</h3>
             {utterances.map((utterance, index) => (
               <div key={index} className="mb-2">
                 <span className="font-semibold">{utterance.speaker}: </span>
