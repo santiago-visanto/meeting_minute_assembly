@@ -38,9 +38,11 @@ export default function MinutesGenerator({ transcript }: { transcript: string })
   const [modifiedReflection, setModifiedReflection] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [isReflecting, setIsReflecting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const generateMinutes = async () => {
     setIsGenerating(true);
+    setError(null);
     try {
       const response = await fetch('/api/generate-minutes', {
         method: 'POST',
@@ -48,10 +50,14 @@ export default function MinutesGenerator({ transcript }: { transcript: string })
         body: JSON.stringify({ transcript, wordCount }),
       });
       const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to generate minutes');
+      }
       setMinutes(data);
       generateReflection(data);
     } catch (error) {
       console.error('Error generating minutes:', error);
+      setError('Failed to generate minutes. Please try again.');
     } finally {
       setIsGenerating(false);
     }
@@ -59,6 +65,7 @@ export default function MinutesGenerator({ transcript }: { transcript: string })
 
   const generateReflection = async (minutesData: MeetingMinutes) => {
     setIsReflecting(true);
+    setError(null);
     try {
       const response = await fetch('/api/generate-reflection', {
         method: 'POST',
@@ -66,9 +73,13 @@ export default function MinutesGenerator({ transcript }: { transcript: string })
         body: JSON.stringify({ minutes: minutesData }),
       });
       const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to generate reflection');
+      }
       setReflection(data.reflection);
     } catch (error) {
       console.error('Error generating reflection:', error);
+      setError('Failed to generate reflection. Please try again.');
     } finally {
       setIsReflecting(false);
     }
@@ -76,6 +87,7 @@ export default function MinutesGenerator({ transcript }: { transcript: string })
 
   const handleModifyReflection = async () => {
     setIsReflecting(true);
+    setError(null);
     try {
       const response = await fetch('/api/generate-reflection', {
         method: 'POST',
@@ -83,12 +95,29 @@ export default function MinutesGenerator({ transcript }: { transcript: string })
         body: JSON.stringify({ minutes, reflection: modifiedReflection }),
       });
       const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to generate new reflection');
+      }
       setReflection(data.reflection);
     } catch (error) {
       console.error('Error generating new reflection:', error);
+      setError('Failed to generate new reflection. Please try again.');
     } finally {
       setIsReflecting(false);
     }
+  };
+
+  const renderList = (items: string[] | undefined) => {
+    if (!Array.isArray(items) || items.length === 0) {
+      return <p>No items available.</p>;
+    }
+    return (
+      <ul className="list-disc pl-5">
+        {items.map((item, index) => (
+          <li key={index}>{item}</li>
+        ))}
+      </ul>
+    );
   };
 
   return (
@@ -113,66 +142,68 @@ export default function MinutesGenerator({ transcript }: { transcript: string })
           {isGenerating ? 'Generando...' : 'Generar Acta'}
         </Button>
         
+        {error && <p className="text-red-500 mt-2">{error}</p>}
+        
         {minutes && (
           <div className="mt-6 space-y-4">
-            <h3 className="text-2xl font-bold">{minutes.title}</h3>
-            <p className="text-sm text-gray-500">Fecha: {minutes.date}</p>
+            <h3 className="text-2xl font-bold">{minutes.title || 'Acta de Reunión'}</h3>
+            <p className="text-sm text-gray-500">Fecha: {minutes.date || 'No especificada'}</p>
             
             <div>
               <h4 className="text-lg font-semibold mb-2">Asistentes:</h4>
-              <ul className="list-disc pl-5">
-                {minutes.attendees.map((attendee, index) => (
-                  <li key={index}>
-                    {attendee.name} - {attendee.position} ({attendee.role})
-                  </li>
-                ))}
-              </ul>
+              {Array.isArray(minutes.attendees) && minutes.attendees.length > 0 ? (
+                <ul className="list-disc pl-5">
+                  {minutes.attendees.map((attendee, index) => (
+                    <li key={index}>
+                      {attendee.name || 'Nombre no especificado'} - 
+                      {attendee.position || 'Posición no especificada'} 
+                      ({attendee.role || 'Rol no especificado'})
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p>No se especificaron asistentes.</p>
+              )}
             </div>
             
             <div>
               <h4 className="text-lg font-semibold mb-2">Resumen:</h4>
-              <p className="whitespace-pre-line">{minutes.summary}</p>
+              <p className="whitespace-pre-line">{minutes.summary || 'No se proporcionó resumen.'}</p>
             </div>
             
             <div>
               <h4 className="text-lg font-semibold mb-2">Puntos Clave:</h4>
-              <ul className="list-disc pl-5">
-                {minutes.takeaways.map((takeaway, index) => (
-                  <li key={index}>{takeaway}</li>
-                ))}
-              </ul>
+              {renderList(minutes.takeaways)}
             </div>
             
             <div>
               <h4 className="text-lg font-semibold mb-2">Conclusiones:</h4>
-              <ul className="list-disc pl-5">
-                {minutes.conclusions.map((conclusion, index) => (
-                  <li key={index}>{conclusion}</li>
-                ))}
-              </ul>
+              {renderList(minutes.conclusions)}
             </div>
             
             <div>
               <h4 className="text-lg font-semibold mb-2">Próxima Reunión:</h4>
-              <ul className="list-disc pl-5">
-                {minutes.next_meeting.map((item, index) => (
-                  <li key={index}>{item}</li>
-                ))}
-              </ul>
+              {renderList(minutes.next_meeting)}
             </div>
             
             <div>
               <h4 className="text-lg font-semibold mb-2">Tareas:</h4>
-              <ul className="list-disc pl-5">
-                {minutes.tasks.map((task, index) => (
-                  <li key={index}>
-                    <strong>{task.responsible}</strong> - {task.description} (Fecha: {task.date})
-                  </li>
-                ))}
-              </ul>
+              {Array.isArray(minutes.tasks) && minutes.tasks.length > 0 ? (
+                <ul className="list-disc pl-5">
+                  {minutes.tasks.map((task, index) => (
+                    <li key={index}>
+                      <strong>{task.responsible || 'Responsable no especificado'}</strong> - 
+                      {task.description || 'Descripción no especificada'} 
+                      (Fecha: {task.date || 'No especificada'})
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p>No se especificaron tareas.</p>
+              )}
             </div>
             
-            <p className="italic text-gray-600">{minutes.message}</p>
+            <p className="italic text-gray-600">{minutes.message || 'No se proporcionó mensaje adicional.'}</p>
           </div>
         )}
         
