@@ -7,27 +7,15 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 
-interface Attendee {
-  name: string;
-  position: string;
-  role: string;
-}
-
-interface Task {
-  responsible: string;
-  date: string;
-  description: string;
-}
-
 interface MeetingMinutes {
   title: string;
   date: string;
-  attendees: Attendee[];
+  attendees: { name: string; position: string; role: string; }[];
   summary: string;
   takeaways: string[];
   conclusions: string[];
   next_meeting: string[];
-  tasks: Task[];
+  tasks: { responsible: string; date: string; description: string; }[];
   message: string;
 }
 
@@ -114,72 +102,16 @@ export default function MinutesGenerator({ transcript }: { transcript: string })
         </Button>
         
         {minutes && (
-          <div className="mt-6 space-y-4">
-            <h3 className="text-2xl font-bold">{minutes.title}</h3>
-            <p className="text-sm text-gray-500">Fecha: {minutes.date}</p>
-            
-            <div>
-              <h4 className="text-lg font-semibold mb-2">Asistentes:</h4>
-              <ul className="list-disc pl-5">
-                {minutes.attendees.map((attendee, index) => (
-                  <li key={index}>
-                    {attendee.name} - {attendee.position} ({attendee.role})
-                  </li>
-                ))}
-              </ul>
-            </div>
-            
-            <div>
-              <h4 className="text-lg font-semibold mb-2">Resumen:</h4>
-              <p className="whitespace-pre-line">{minutes.summary}</p>
-            </div>
-            
-            <div>
-              <h4 className="text-lg font-semibold mb-2">Puntos Clave:</h4>
-              <ul className="list-disc pl-5">
-                {minutes.takeaways.map((takeaway, index) => (
-                  <li key={index}>{takeaway}</li>
-                ))}
-              </ul>
-            </div>
-            
-            <div>
-              <h4 className="text-lg font-semibold mb-2">Conclusiones:</h4>
-              <ul className="list-disc pl-5">
-                {minutes.conclusions.map((conclusion, index) => (
-                  <li key={index}>{conclusion}</li>
-                ))}
-              </ul>
-            </div>
-            
-            <div>
-              <h4 className="text-lg font-semibold mb-2">Próxima Reunión:</h4>
-              <ul className="list-disc pl-5">
-                {minutes.next_meeting.map((item, index) => (
-                  <li key={index}>{item}</li>
-                ))}
-              </ul>
-            </div>
-            
-            <div>
-              <h4 className="text-lg font-semibold mb-2">Tareas:</h4>
-              <ul className="list-disc pl-5">
-                {minutes.tasks.map((task, index) => (
-                  <li key={index}>
-                    <strong>{task.responsible}</strong> - {task.description} (Fecha: {task.date})
-                  </li>
-                ))}
-              </ul>
-            </div>
-            
-            <p className="italic text-gray-600">{minutes.message}</p>
+          <div className="mt-4">
+            <h3 className="text-lg font-semibold mb-2">Acta de la Reunión:</h3>
+            <pre className="whitespace-pre-wrap">{JSON.stringify(minutes, null, 2)}</pre>
           </div>
         )}
         
         {reflection && (
-          <div className="mt-6">
-            <h3 className="text-xl font-semibold mb-2">Crítica del Acta:</h3>
-            <p className="mb-4">{reflection}</p>
+          <div className="mt-4">
+            <h3 className="text-lg font-semibold mb-2">Crítica del Acta:</h3>
+            <p>{reflection}</p>
             <Textarea
               value={modifiedReflection}
               onChange={(e) => setModifiedReflection(e.target.value)}
