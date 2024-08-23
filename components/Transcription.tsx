@@ -1,11 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { AlertCircle } from "lucide-react"
 
 interface Utterance {
   speaker: string;
@@ -22,11 +24,55 @@ export default function Transcription({ audioUrl, onTranscriptionComplete }: Tra
   const [utterances, setUtterances] = useState<Utterance[]>([]);
   const [progress, setProgress] = useState(0);
   const [speakersExpected, setSpeakersExpected] = useState(2);
+  const [error, setError] = useState<string | null>(null);
+  const [transcriptionId, setTranscriptionId] = useState<string | null>(null);
+
+  useEffect(() => {
+    let intervalId: NodeJS.Timeout;
+
+    const checkTranscriptionStatus = async () => {
+      if (!transcriptionId) return;
+
+      try {
+        const response = await fetch(`/api/check-transcription-status?id=${transcriptionId}`);
+        const data = await response.json();
+
+        if (data.status === 'completed') {
+          setIsTranscribing(false);
+          setProgress(100);
+          setUtterances(data.utterances);
+          const fullTranscript = data.utterances.map((u: Utterance) => `${u.speaker}: ${u.text}`).join('\n');
+          onTranscriptionComplete(fullTranscript);
+          clearInterval(intervalId);
+        } else if (data.status === 'error') {
+          setError(data.error || 'An error occurred during transcription');
+          setIsTranscribing(false);
+          clearInterval(intervalId);
+        } else {
+          setProgress(data.progress || 0);
+        }
+      } catch (error) {
+        console.error('Error checking transcription status:', error);
+        setError('Failed to check transcription status');
+        setIsTranscribing(false);
+        clearInterval(intervalId);
+      }
+    };
+
+    if (isTranscribing && transcriptionId) {
+      intervalId = setInterval(checkTranscriptionStatus, 5000); // Check every 5 seconds
+    }
+
+    return () => {
+      if (intervalId) clearInterval(intervalId);
+    };
+  }, [isTranscribing, transcriptionId, onTranscriptionComplete]);
 
   const handleTranscribe = async () => {
     setIsTranscribing(true);
     setProgress(0);
     setUtterances([]);
+    setError(null);
 
     try {
       const response = await fetch('/api/transcribe', {
@@ -35,21 +81,16 @@ export default function Transcription({ audioUrl, onTranscriptionComplete }: Tra
         body: JSON.stringify({ audioUrl, speakersExpected }),
       });
 
-      if (!response.ok) throw new Error('Transcription failed');
+      if (!response.ok) {
+        throw new Error('Transcription request failed');
+      }
 
       const data = await response.json();
-      if (data.error) throw new Error(data.error);
-
-      setUtterances(data.utterances);
-      
-      // Combine all utterances into a single string and pass it to the parent component
-      const fullTranscript = data.utterances.map((u: { speaker: any; text: any; }) => `${u.speaker}: ${u.text}`).join('\n');
-      onTranscriptionComplete(fullTranscript);
+      setTranscriptionId(data.transcriptionId);
     } catch (error) {
       console.error('Transcription error:', error);
-    } finally {
+      setError('Failed to start transcription. Please try again.');
       setIsTranscribing(false);
-      setProgress(100);
     }
   };
 
@@ -74,7 +115,19 @@ export default function Transcription({ audioUrl, onTranscriptionComplete }: Tra
         <Button onClick={handleTranscribe} disabled={isTranscribing}>
           {isTranscribing ? 'Transcribing...' : 'Start Transcription'}
         </Button>
-        {isTranscribing && <Progress value={progress} className="mt-2" />}
+        {isTranscribing && (
+          <div className="mt-4">
+            <Progress value={progress} className="w-full" />
+            <p className="text-center mt-2">{progress}% complete</p>
+          </div>
+        )}
+        {error && (
+          <Alert variant="destructive" className="mt-4">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>Error</AlertTitle>
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
         {utterances.length > 0 && (
           <div className="mt-4">
             <h3 className="text-lg font-semibold mb-2">Transcript:</h3>
