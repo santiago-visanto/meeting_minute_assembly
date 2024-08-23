@@ -61,7 +61,7 @@ export default function Transcription({ audioUrl, onTranscriptionComplete }: Tra
       </CardHeader>
       <CardContent>
         <div className="mb-4">
-          <Label htmlFor="speakers">Expected Number of Speakers</Label>
+          <Label htmlFor="speakers">Expected Number of Speakers: {speakersExpected}</Label>
           <Slider
             id="speakers"
             min={1}
