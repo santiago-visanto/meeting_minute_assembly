@@ -14,17 +14,29 @@ const client = new AssemblyAI({
 export async function POST(request: Request) {
   const { audioUrl, speakersExpected } = await request.json();
 
-  try {
-    const transcript = await client.transcripts.create({
-      audio_url: audioUrl,
-      speaker_labels: true,
-      speakers_expected: speakersExpected,
-      language_code: 'es',  // Asegurarse de que el idioma esté configurado en español
-    });
+  const params = {
+    audio: audioUrl,
+    speech_model: "best" as any,
+    speaker_labels: true,
+    language_code: 'es',
+    speakers_expected: speakersExpected,
+  };
 
-    return NextResponse.json({ transcriptionId: transcript.id });
+  try {
+    const transcript = await client.transcripts.transcribe(params);
+
+    if (transcript.status === 'error') {
+      throw new Error(transcript.error);
+    }
+
+    const utterances = transcript.utterances?.map(utterance => ({
+      speaker: utterance.speaker,
+      text: utterance.text,
+    })) || [];
+
+    return NextResponse.json({ utterances });
   } catch (error) {
-    console.error('Error al iniciar la transcripción:', error);
-    return NextResponse.json({ error: 'No se pudo iniciar la transcripción' }, { status: 500 });
+    console.error('Transcription error:', error);
+    return NextResponse.json({ error: 'Transcription failed' }, { status: 500 });
   }
 }
