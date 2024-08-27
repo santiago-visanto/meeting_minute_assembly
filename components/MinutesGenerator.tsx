@@ -105,13 +105,13 @@ export default function MinutesGenerator({ transcript }: { transcript: string })
         <CardTitle>Generador de Acta de Reunión</CardTitle>
       </CardHeader>
       <CardContent>
-        <div>
+        <div className="mb-4">
           <Label htmlFor="wordCount">Número de palabras del acta: {wordCount}</Label>
           <Slider
             id="wordCount"
-            min={50}
-            max={500}
-            step={10}
+            min={100}
+            max={2000}
+            step={50}
             value={[wordCount]}
             onValueChange={(value) => setWordCount(value[0])}
             className="mt-2"
