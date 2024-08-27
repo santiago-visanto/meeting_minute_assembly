@@ -49,17 +49,30 @@ export default function MinutesGenerator({ transcript }: { transcript: string })
       });
       const data = await response.json();
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to generate minutes');
+        if (response.status === 400) {
+          setError('Error de validación. Por favor, revise los datos ingresados.');
+        } else if (response.status === 500) {
+          setError('Error interno del servidor. Por favor, inténtelo de nuevo más tarde.');
+        } else {
+          setError('Error desconocido. Por favor, inténtelo de nuevo.');
+        }
+      } else {
+        setMinutes(data.minutes);
+        setReflection(data.reflection);
       }
-      setMinutes(data.minutes);
-      setReflection(data.reflection);
     } catch (error) {
-      console.error('Error generating minutes:', error);
-      setError('Failed to generate minutes. Please try again.');
+      if (error instanceof TypeError) {
+        setError('Error de tipo. Por favor, revise los datos ingresados.');
+      } else if (error instanceof RangeError) {
+        setError('Error de rango. Por favor, revise los datos ingresados.');
+      } else {
+        setError('Error desconocido. Por favor, inténtelo de nuevo.');
+      }
     } finally {
       setIsGenerating(false);
     }
   };
+  
 
   const handleGenerateNewMinutes = () => {
     generateMinutes(reflection);
