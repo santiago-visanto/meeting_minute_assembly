@@ -1,11 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { FormEvent, useState } from 'react';
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
+import { Slider } from "@/components/ui/slider"
 
 interface Attendee {
   name: string;
@@ -105,18 +106,21 @@ export default function MinutesGenerator({ transcript }: { transcript: string })
         <CardTitle>Generador de Acta de Reunión</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="mb-4">
-          <Label htmlFor="wordCount">Número de palabras del acta</Label>
-          <Input
-            id="wordCount"
-            type="number"
-            min="50"
-            max="500"
-            value={wordCount}
-            onChange={(e) => setWordCount(Math.max(50, Math.min(500, parseInt(e.target.value) || 50)))}
-            className="mt-1"
-          />
-        </div>
+      <div className="mb-4">
+        <Label htmlFor="wordCount">Número de palabras del acta</Label>
+        <Slider
+  id="wordCount"
+  min={50}
+  max={500}
+  step={1}
+  value={[wordCount]}
+  onChange={(event: FormEvent<HTMLInputElement>) => {
+    const values = event.currentTarget.value.split('-');
+    setWordCount(parseInt(values[0]));
+  }}
+  className="mt-1"
+/>
+      </div>
         <Button onClick={() => generateMinutes()} disabled={isGenerating}>
           {isGenerating ? 'Generando...' : 'Generar Acta'}
         </Button>

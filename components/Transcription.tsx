@@ -1,11 +1,12 @@
 'use client';
 
-import { useState } from 'react';
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Progress } from "@/components/ui/progress"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+import { useState, FormEventHandler, FormEvent } from 'react';
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Slider } from "@/components/ui/slider"; // Import the Slider component
 
 interface Utterance {
   speaker: string;
@@ -41,7 +42,7 @@ export default function Transcription({ audioUrl, onTranscriptionComplete }: Tra
       if (data.error) throw new Error(data.error);
 
       setUtterances(data.utterances);
-      
+
       // Combine all utterances into a single string and pass it to the parent component
       const fullTranscript = data.utterances.map((u: { speaker: any; text: any; }) => `${u.speaker}: ${u.text}`).join('\n');
       onTranscriptionComplete(fullTranscript);
@@ -60,14 +61,17 @@ export default function Transcription({ audioUrl, onTranscriptionComplete }: Tra
       </CardHeader>
       <CardContent>
         <div className="mb-4">
-          <Label htmlFor="speakers">Expected Number of Speakers</Label>
-          <Input
+          <Label htmlFor="speakers">Number of Expected Speakers</Label>
+          <Slider
             id="speakers"
-            type="number"
-            min="1"
-            max="10"
-            value={speakersExpected}
-            onChange={(e) => setSpeakersExpected(Math.max(1, Math.min(10, parseInt(e.target.value) || 1)))}
+            min={1}
+            max={10}
+            step={1}
+            value={[speakersExpected]}
+            onChange={(event: FormEvent<HTMLInputElement>) => {
+              const values = event.currentTarget.value.split('-');
+              setSpeakersExpected(parseInt(values[0]));
+            }}
             className="mt-1"
           />
         </div>
