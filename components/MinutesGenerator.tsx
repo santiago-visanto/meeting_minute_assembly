@@ -105,44 +105,37 @@ export default function MinutesGenerator({ transcript }: { transcript: string })
         <CardTitle>Generador de Acta de Reunión</CardTitle>
       </CardHeader>
       <CardContent>
-      <div className="mb-4">
-  <Label htmlFor="wordCount">Número de palabras del acta</Label>
-  <span className="text-gray-600">Palabras Clave: {wordCount}</span>
-  <Input
-    id="wordCount"
-    type="number"
-    min={50}
-    max={500}
-    step={1}
-    value={wordCount}
-    onChange={(event: FormEvent<HTMLInputElement>) => {
-      const newValue = parseInt(event.currentTarget.value, 10);
-      if (!isNaN(newValue)) {
-        setWordCount(newValue);
-      }
-    }}
-    className="mt-1 w-full"
-  />
-</div>
+        <div>
+          <Label htmlFor="wordCount">Número de palabras del acta: {wordCount}</Label>
+          <Slider
+            id="wordCount"
+            min={50}
+            max={500}
+            step={10}
+            value={[wordCount]}
+            onValueChange={(value) => setWordCount(value[0])}
+            className="mt-2"
+          />
+        </div>
         <Button onClick={() => generateMinutes()} disabled={isGenerating}>
           {isGenerating ? 'Generando...' : 'Generar Acta'}
         </Button>
-        
+
         {error && <p className="text-red-500 mt-2" role="alert">{error}</p>}
-        
+
         {minutes && (
           <div className="mt-6 space-y-4">
             <h3 className="text-2xl font-bold">{minutes.title || 'Acta de Reunión'}</h3>
             <p className="text-sm text-gray-500">Fecha: {minutes.date || 'No especificada'}</p>
-            
+
             <div>
               <h4 className="text-lg font-semibold mb-2">Asistentes:</h4>
               {Array.isArray(minutes.attendees) && minutes.attendees.length > 0 ? (
                 <ul className="list-disc pl-5">
                   {minutes.attendees.map((attendee, index) => (
                     <li key={index}>
-                      {attendee.name || 'Nombre no especificado'} - 
-                      {attendee.position || 'Posición no especificada'} 
+                      {attendee.name || 'Nombre no especificado'} -
+                      {attendee.position || 'Posición no especificada'}
                       ({attendee.role || 'Rol no especificado'})
                     </li>
                   ))}
@@ -151,35 +144,35 @@ export default function MinutesGenerator({ transcript }: { transcript: string })
                 <p>No se especificaron asistentes.</p>
               )}
             </div>
-            
+
             <div>
               <h4 className="text-lg font-semibold mb-2">Resumen:</h4>
               <p className="whitespace-pre-line">{minutes.summary || 'No se proporcionó resumen.'}</p>
             </div>
-            
+
             <div>
               <h4 className="text-lg font-semibold mb-2">Puntos Clave:</h4>
               {renderList(minutes.takeaways)}
             </div>
-            
+
             <div>
               <h4 className="text-lg font-semibold mb-2">Conclusiones:</h4>
               {renderList(minutes.conclusions)}
             </div>
-            
+
             <div>
               <h4 className="text-lg font-semibold mb-2">Próxima Reunión:</h4>
               {renderList(minutes.next_meeting)}
             </div>
-            
+
             <div>
               <h4 className="text-lg font-semibold mb-2">Tareas:</h4>
               {Array.isArray(minutes.tasks) && minutes.tasks.length > 0 ? (
                 <ul className="list-disc pl-5">
                   {minutes.tasks.map((task, index) => (
                     <li key={index}>
-                      <strong>{task.responsible || 'Responsable no especificado'}</strong> - 
-                      {task.description || 'Descripción no especificada'} 
+                      <strong>{task.responsible || 'Responsable no especificado'}</strong> -
+                      {task.description || 'Descripción no especificada'}
                       (Fecha: {task.date || 'No especificada'})
                     </li>
                   ))}
@@ -188,11 +181,11 @@ export default function MinutesGenerator({ transcript }: { transcript: string })
                 <p>No se especificaron tareas.</p>
               )}
             </div>
-            
+
             <p className="italic text-gray-600">{minutes.message || 'No se proporcionó mensaje adicional.'}</p>
           </div>
         )}
-        
+
         {minutes && (
           <div className="mt-6">
             <h3 className="text-xl font-semibold mb-2">Crítica y Sugerencias:</h3>

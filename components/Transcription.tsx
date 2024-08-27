@@ -60,22 +60,17 @@ export default function Transcription({ audioUrl, onTranscriptionComplete }: Tra
         <CardTitle>Transcription</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="mb-4">
-          <Label htmlFor="expectedSpeakers">Number of Expected Speakers</Label>
-          <div className="flex items-center space-x-2">
-            <span className="text-gray-600">Expected Speakers: {speakersExpected}</span>
-            <Slider
-              id="speakers"
-              min={1}
-              max={10}
-              step={1}
-              value={[speakersExpected]}
-              onChange={(event: FormEvent<HTMLInputElement>) => {
-                const values = event.currentTarget.value.split('-');
-                setSpeakersExpected(parseInt(values[0]));
-              }}
-              className="w-64"
-            />
+      <div className="mb-4">
+          <Label htmlFor="speakers">Expected Number of Speakers: {speakersExpected}</Label>
+          <Slider
+            id="speakers"
+            min={1}
+            max={10}
+            step={1}
+            value={[speakersExpected]}
+            onValueChange={(value) => setSpeakersExpected(value[0])}
+            className="mt-1"
+          />
         </div>
         <Button onClick={handleTranscribe} disabled={isTranscribing}>
           {isTranscribing ? 'Transcribing...' : 'Start Transcription'}
