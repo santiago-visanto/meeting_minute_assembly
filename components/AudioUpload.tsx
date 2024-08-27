@@ -58,7 +58,7 @@ export default function AudioUpload({ onUploadComplete }: { onUploadComplete: (u
                   type="file" 
                   id="audio-file" 
                   ref={inputFileRef}
-                  accept="audio/mp3,audio/wav,audio/m4a,audio/ogg"
+                  accept="audio/mp3,audio/wav,audio/m4a,audio/ogg,audio/aac,audio/wma, audio/amr, audio/awb"
                   required
                 />
                 <Button type="submit" className="w-full" disabled={isUploading}>
