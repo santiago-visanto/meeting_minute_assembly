@@ -42,12 +42,20 @@ export default function MinutesGenerator({ transcript }: { transcript: string })
     setIsGenerating(true);
     setError(null);
     try {
+      const data = {
+        transcript,
+        wordCount,
+        minutes,
+        reflection: existingReflection
+      };
+      const jsonData = JSON.stringify(data);
       const response = await fetch('/api/generate-minutes', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ transcript, wordCount, minutes, reflection: existingReflection }),
+        body: jsonData
       });
-      const data = await response.json();
+
+      const responseData = await response.json();
       if (!response.ok) {
         if (response.status === 400) {
           setError('Error de validación. Por favor, revise los datos ingresados.');
@@ -57,8 +65,8 @@ export default function MinutesGenerator({ transcript }: { transcript: string })
           setError('Error desconocido. Por favor, inténtelo de nuevo.');
         }
       } else {
-        setMinutes(data.minutes);
-        setReflection(data.reflection);
+        setMinutes(responseData.minutes);
+        setReflection(responseData.reflection);
       }
     } catch (error) {
       if (error instanceof TypeError) {

@@ -57,7 +57,9 @@ export async function POST(request: Request) {
   if (minutes && reflection) {
     content += `\n\nHere are the existing minutes:\n${JSON.stringify(minutes)}\n\n
     And here is the reflection and suggestions:\n${reflection}\n\n
-    Please use this information to improve and refine the new minutes.`;
+    Please use this information to improve and refine the new minutes.
+    Respond in json.
+    `;
   }
 
   const request_message = new HumanMessage({ content });
