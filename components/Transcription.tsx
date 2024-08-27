@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Slider } from "@/components/ui/slider"; // Import the Slider component
+import { Slider } from '@/components/ui/slider';
 
 interface Utterance {
   speaker: string;
@@ -61,19 +61,21 @@ export default function Transcription({ audioUrl, onTranscriptionComplete }: Tra
       </CardHeader>
       <CardContent>
         <div className="mb-4">
-          <Label htmlFor="speakers">Number of Expected Speakers</Label>
-          <Slider
-            id="speakers"
-            min={1}
-            max={10}
-            step={1}
-            value={[speakersExpected]}
-            onChange={(event: FormEvent<HTMLInputElement>) => {
-              const values = event.currentTarget.value.split('-');
-              setSpeakersExpected(parseInt(values[0]));
-            }}
-            className="mt-1"
-          />
+          <Label htmlFor="expectedSpeakers">Number of Expected Speakers</Label>
+          <div className="flex items-center space-x-2">
+            <span className="text-gray-600">Expected Speakers: {speakersExpected}</span>
+            <Slider
+              id="speakers"
+              min={1}
+              max={10}
+              step={1}
+              value={[speakersExpected]}
+              onChange={(event: FormEvent<HTMLInputElement>) => {
+                const values = event.currentTarget.value.split('-');
+                setSpeakersExpected(parseInt(values[0]));
+              }}
+              className="w-64"
+            />
         </div>
         <Button onClick={handleTranscribe} disabled={isTranscribing}>
           {isTranscribing ? 'Transcribing...' : 'Start Transcription'}

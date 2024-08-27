@@ -1,12 +1,12 @@
 'use client';
 
 import { FormEvent, useState } from 'react';
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Slider } from "@/components/ui/slider"
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Slider } from "@/components/ui/slider";
 
 interface Attendee {
   name: string;
@@ -33,7 +33,7 @@ interface MeetingMinutes {
 }
 
 export default function MinutesGenerator({ transcript }: { transcript: string }) {
-  const [wordCount, setWordCount] = useState(100);
+  const [wordCount, setWordCount] = useState<number>(100);
   const [minutes, setMinutes] = useState<MeetingMinutes | null>(null);
   const [reflection, setReflection] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
@@ -81,7 +81,6 @@ export default function MinutesGenerator({ transcript }: { transcript: string })
       setIsGenerating(false);
     }
   };
-  
 
   const handleGenerateNewMinutes = () => {
     generateMinutes(reflection);
@@ -107,20 +106,24 @@ export default function MinutesGenerator({ transcript }: { transcript: string })
       </CardHeader>
       <CardContent>
       <div className="mb-4">
-        <Label htmlFor="wordCount">Número de palabras del acta</Label>
-        <Slider
-  id="wordCount"
-  min={50}
-  max={500}
-  step={1}
-  value={[wordCount]}
-  onChange={(event: FormEvent<HTMLInputElement>) => {
-    const values = event.currentTarget.value.split('-');
-    setWordCount(parseInt(values[0]));
-  }}
-  className="mt-1"
-/>
-      </div>
+  <Label htmlFor="wordCount">Número de palabras del acta</Label>
+  <span className="text-gray-600">Palabras Clave: {wordCount}</span>
+  <Input
+    id="wordCount"
+    type="number"
+    min={50}
+    max={500}
+    step={1}
+    value={wordCount}
+    onChange={(event: FormEvent<HTMLInputElement>) => {
+      const newValue = parseInt(event.currentTarget.value, 10);
+      if (!isNaN(newValue)) {
+        setWordCount(newValue);
+      }
+    }}
+    className="mt-1 w-full"
+  />
+</div>
         <Button onClick={() => generateMinutes()} disabled={isGenerating}>
           {isGenerating ? 'Generando...' : 'Generar Acta'}
         </Button>
