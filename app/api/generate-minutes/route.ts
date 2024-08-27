@@ -11,17 +11,28 @@ const parser = new JsonOutputParser();
 const prompt = ChatPromptTemplate.fromMessages([
   [
     "system",
-    `As an expert in minute meeting creation, you are a chatbot designed to facilitate the process of generating meeting minutes efficiently.
+    `As an expert in minute meeting creation, you are a chatbot designed to facilitate the process of generating meeting minutes efficiently.\n
 
-    ${formatInstructions}
+    ${formatInstructions}\n
+
+      "title": Title of the meeting,
+      "date": Date of the meeting,
+      "attendees": List of dictionaries of the meeting attendees. The dictionaries must have the following key values: "name", "position" and "role". The "role" key refers to the attendee's function in the meeting. If any of the values of these keys is not clear or is not mentioned, it is given the value "none".
+      "summary": "succinctly summarize the minutes of the meeting in 3 clear and coherent paragraphs. Separete paragraphs using newline characters.",
+      "takeaways": List of the takeaways of the meeting minute,
+      "conclusions": List of conclusions and actions to be taken,
+      "next_meeting": List of the commitments made at the meeting. Be sure to go through the entire content of the meeting before giving your answer,
+      "tasks": List of dictionaries for the commitments acquired in the meeting. The dictionaries must have the following key values "responsible", "date" and "description". In the key-value  "description", it is advisable to mention specifically what the person in charge is expected to do instead of indicating general actions. Be sure to include all the items in the next_mmeting list,
+      "message": "message to the critique",
 
     Respond in Spanish.
 
     Ensure that your responses are structured, concise, and provide a 
     comprehensive overview of the meeting proceedings for
-    effective record-keeping and follow-up actions and only with json object.
+    effective record-keeping and follow-up actions. 
     
-    If provided with existing minutes and reflection, use them to improve and refine the new minutes.`,
+    If provided with existing minutes and reflection, use them to improve and refine the new minutes.
+    Respond only with json object.`,
   ],
   new MessagesPlaceholder("messages"),
 ]);
